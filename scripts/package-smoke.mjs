@@ -20,7 +20,7 @@ try {
     import assert from "node:assert/strict";
     import { analyzeDataset, createDemoDataset, VERSION } from "app-verbatim";
     const { report } = analyzeDataset(createDemoDataset(8), { source: { store: "demo", appId: "primary" } });
-    assert.equal(VERSION, "0.1.0");
+    assert.equal(VERSION, "0.2.0");
     assert.equal(report.sample.total, 8);
   `, "utf8");
   run(process.execPath, [npmCli, "install", "--ignore-scripts", tarball], consumer);

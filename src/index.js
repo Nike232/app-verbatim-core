@@ -7,6 +7,7 @@ export {
   normalizeReview
 } from "./analysis.js";
 export { analyze, analyzeDataset } from "./run-analysis.js";
+export { discoverIssues } from "./discovery.js";
 export {
   ConnectorDefinitionError,
   ConnectorNotFoundError,
@@ -33,6 +34,7 @@ export {
   reportToMarkdown,
   resolveExportFormat
 } from "./exporters.js";
+export { DEFAULT_POLICY, evaluateRegression, regressionToMarkdown } from "./regression.js";
 export { parseSourceRef, UnsupportedStoreUrlError } from "./source-ref.js";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";

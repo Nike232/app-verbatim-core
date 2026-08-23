@@ -1,0 +1,95 @@
+name: App Verbatim Review Regression
+description: Detect App Store and Google Play review regressions and surface the source reviews behind every signal.
+author: Tomfng
+
+branding:
+  icon: activity
+  color: green
+
+inputs:
+  app-url:
+    description: Public Apple App Store or Google Play listing URL.
+    required: false
+  country:
+    description: Two-letter storefront country.
+    required: false
+    default: US
+  language:
+    description: Review language used by supported connectors.
+    required: false
+    default: en
+  limit:
+    description: Maximum reviews to evaluate.
+    required: false
+    default: "300"
+  min-version-reviews:
+    description: Minimum reviews required for both current and baseline versions.
+    required: false
+    default: "5"
+  max-rating-drop:
+    description: Maximum allowed average-rating drop in stars.
+    required: false
+    default: "0.4"
+  max-negative-increase:
+    description: Maximum allowed increase in one- and two-star share, from 0 to 1.
+    required: false
+    default: "0.15"
+  max-theme-increase:
+    description: Maximum allowed increase in a complaint theme's share, from 0 to 1.
+    required: false
+    default: "0.18"
+  max-discovered-share:
+    description: Maximum allowed share for a newly discovered issue fingerprint, from 0 to 1.
+    required: false
+    default: "0.05"
+  min-theme-reviews:
+    description: Minimum current-version reviews before a theme can fail the check.
+    required: false
+    default: "3"
+  create-issue:
+    description: Create or update one deduplicated GitHub issue when regression is detected.
+    required: false
+    default: "false"
+  github-token:
+    description: GitHub token used when create-issue is true.
+    required: false
+  fail-on-regression:
+    description: Fail the workflow when policy thresholds are exceeded.
+    required: false
+    default: "true"
+  fail-on-insufficient-data:
+    description: Fail when two versions do not have enough review evidence.
+    required: false
+    default: "false"
+  output:
+    description: Path for the machine-readable regression result.
+    required: false
+    default: app-verbatim-regression.json
+  report-output:
+    description: Path for the full evidence report.
+    required: false
+    default: app-verbatim-report.json
+  demo:
+    description: Run the bundled offline regression scenario. Intended for smoke testing.
+    required: false
+    default: "false"
+
+outputs:
+  status:
+    description: pass, fail, or insufficient-data.
+  current-version:
+    description: Newest version with enough review evidence.
+  baseline-version:
+    description: Previous version used as the baseline.
+  violations:
+    description: Number of policy violations.
+  result-file:
+    description: Absolute path to the regression JSON result.
+  report-file:
+    description: Absolute path to the full evidence report.
+  issue-url:
+    description: Created or updated regression issue URL.
+
+runs:
+  using: node24
+  main: dist/action.cjs

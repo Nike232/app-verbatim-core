@@ -5,11 +5,11 @@
 Core is useful on its own and contains the quality-critical path:
 
 - public-store connectors and normalized review model;
-- deterministic deduplication, aggregation, themes, trends, versions, and competitor comparison;
+- deterministic deduplication, aggregation, themes, unknown-issue discovery, trends, versions, and competitor comparison;
 - evidence citations and provenance hashes;
-- CLI and Node.js API;
+- release-regression policy engine, CLI, Node.js API, and reusable GitHub Action;
 - JSON, CSV, Markdown, and standalone HTML exporters;
-- connector extension API, fixtures, tests, and compatibility policy.
+- connector extension API, transparent benchmarks, fixtures, tests, and compatibility policy.
 
 Core must never intentionally return weaker evidence or incorrect counts to create a paywall.
 

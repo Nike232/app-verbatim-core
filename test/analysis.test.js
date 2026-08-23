@@ -45,3 +45,23 @@ test("classifies common non-English review language", async () => {
   assert.ok(matches.some((match) => match.id === "stability"));
   assert.ok(matches.some((match) => match.id === "account"));
 });
+
+test("matches common inflections without substring false positives", async () => {
+  const { classifyReview } = await import("../src/index.js");
+  assert.ok(classifyReview({ title: "", body: "It crashes and freezes while syncing." }).some((match) => match.id === "stability"));
+  assert.ok(classifyReview({ title: "", body: "It crashes and freezes while syncing." }).some((match) => match.id === "sync"));
+  assert.equal(classifyReview({ title: "", body: "A carefully built writing tool." }).length, 0);
+});
+
+test("orders numeric versions instead of treating a late old-version review as current", () => {
+  const reviews = [
+    { ...base, reviewId: "new", body: "Works", rating: 5, appVersion: "2.1.0", createdAt: "2026-08-18" },
+    { ...base, reviewId: "old", body: "Still installed", rating: 3, appVersion: "1.9.9", createdAt: "2026-08-22" }
+  ];
+  const report = buildReport({
+    reviews,
+    source: { store: "google-play" },
+    app: { id: base.appId, name: "Example", store: "google-play", url: "https://example.com" }
+  });
+  assert.deepEqual(report.versions.map((item) => item.version), ["2.1.0", "1.9.9"]);
+});

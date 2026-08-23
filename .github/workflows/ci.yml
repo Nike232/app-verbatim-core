@@ -33,3 +33,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/dependency-review-action@v5
+
+  action-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - id: regression
+        uses: ./
+        with:
+          demo: true
+          fail-on-regression: false
+      - name: Verify Action outputs
+        env:
+          STATUS: ${{ steps.regression.outputs.status }}
+          VIOLATIONS: ${{ steps.regression.outputs.violations }}
+        run: |
+          test "$STATUS" = "fail"
+          test "$VIOLATIONS" -ge 4

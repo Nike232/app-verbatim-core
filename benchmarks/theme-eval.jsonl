@@ -1,0 +1,45 @@
+{"id":"stability-en-1","language":"en","text":"The app crashes whenever I open a shared board.","labels":["stability"]}
+{"id":"stability-en-2","language":"en","text":"It is frozen on the launch screen and won't open.","labels":["stability"]}
+{"id":"stability-zh","language":"zh","text":"更新以后一直闪退，完全打不开。","labels":["stability"]}
+{"id":"stability-ja","language":"ja","text":"起動するとすぐクラッシュして落ちる。","labels":["stability"]}
+{"id":"performance-en","language":"en","text":"Scrolling is laggy and the phone starts to overheat.","labels":["performance"]}
+{"id":"performance-zh","language":"zh","text":"后台特别耗电，而且页面加载很慢。","labels":["performance"]}
+{"id":"performance-de","language":"de","text":"Die App ist sehr langsam und verbraucht viel Batterie.","labels":["performance"]}
+{"id":"performance-ja","language":"ja","text":"動作が重いしバッテリーの減りが早い。","labels":["performance"]}
+{"id":"pricing-en","language":"en","text":"The subscription is too expensive and the paywall appears immediately.","labels":["pricing"]}
+{"id":"pricing-zh","language":"zh","text":"莫名其妙自动续费扣费，申请退款也没有结果。","labels":["pricing"]}
+{"id":"pricing-fr","language":"fr","text":"L'abonnement est beaucoup trop cher.","labels":["pricing"]}
+{"id":"pricing-es","language":"es","text":"La suscripción es cara y no puedo pedir un refund.","labels":["pricing"]}
+{"id":"account-en","language":"en","text":"The verification code never arrives so I cannot sign in.","labels":["account"]}
+{"id":"account-zh","language":"zh","text":"登录时收不到验证码，账号进不去了。","labels":["account"]}
+{"id":"account-es","language":"es","text":"Olvidé la contraseña y no puedo iniciar sesión.","labels":["account"]}
+{"id":"account-ja","language":"ja","text":"ログインできず、アカウントに入れない。","labels":["account"]}
+{"id":"sync-en","language":"en","text":"Sync deleted a folder and now I have missing data.","labels":["sync"]}
+{"id":"sync-zh","language":"zh","text":"多设备同步之后数据丢失，备份也无法恢复。","labels":["sync"]}
+{"id":"sync-fr","language":"fr","text":"La sauvegarde ne fonctionne plus entre mes appareils.","labels":["sync"]}
+{"id":"sync-ja","language":"ja","text":"同期したらデータ消失してバックアップも戻せない。","labels":["sync"]}
+{"id":"notifications-en","language":"en","text":"Notifications are delayed and every reminder arrives late.","labels":["notifications"]}
+{"id":"notifications-zh","language":"zh","text":"消息推送收不到，提醒总是延迟。","labels":["notifications"]}
+{"id":"notifications-de","language":"de","text":"Die Erinnerung kommt nie als Benachrichtigung an.","labels":["notifications"]}
+{"id":"notifications-ja","language":"ja","text":"リマインダーの通知が届かない。","labels":["notifications"]}
+{"id":"usability-en","language":"en","text":"The new navigation is confusing and hard to use.","labels":["usability"]}
+{"id":"usability-zh","language":"zh","text":"新版界面太复杂，常用入口完全找不到。","labels":["usability"]}
+{"id":"usability-de","language":"de","text":"Die Navigation ist verwirrend und schwer zu bedienen.","labels":["usability"]}
+{"id":"usability-ja","language":"ja","text":"新しい画面は使いにくいし設定が分かりにくい。","labels":["usability"]}
+{"id":"request-en","language":"en","text":"Please add calendar export and offline mode.","labels":["feature-request","sync"]}
+{"id":"request-zh","language":"zh","text":"希望增加批量导出功能。","labels":["feature-request","sync"]}
+{"id":"request-fr","language":"fr","text":"Veuillez ajouter un mode sombre.","labels":["feature-request"]}
+{"id":"request-ja","language":"ja","text":"ウィジェット機能を追加して欲しい。","labels":["feature-request"]}
+{"id":"privacy-en","language":"en","text":"Why does a notes app need tracking permission and data collection?","labels":["privacy"]}
+{"id":"privacy-zh","language":"zh","text":"强制索要通讯录权限让我担心隐私。","labels":["privacy"]}
+{"id":"privacy-fr","language":"fr","text":"Cette permission pose un problème de confidentialité.","labels":["privacy"]}
+{"id":"privacy-ja","language":"ja","text":"不要な権限が多くプライバシーが心配。","labels":["privacy"]}
+{"id":"multi-en","language":"en","text":"The app crashes after login and the password reset code never arrives.","labels":["stability","account"]}
+{"id":"multi-zh","language":"zh","text":"同步时一直卡死，数据也无法恢复。","labels":["stability","sync"]}
+{"id":"multi-es","language":"es","text":"La aplicación es lenta y la suscripción es demasiado cara.","labels":["performance","pricing"]}
+{"id":"none-en-1","language":"en","text":"The latest release feels polished and thoughtful.","labels":[]}
+{"id":"none-en-2","language":"en","text":"Search results are accurate and fast enough for me.","labels":[]}
+{"id":"none-zh","language":"zh","text":"整体体验不错，日常记录很方便。","labels":[]}
+{"id":"none-de","language":"de","text":"Ich benutze es jeden Tag und bin zufrieden.","labels":[]}
+{"id":"none-es","language":"es","text":"Todo funciona bien y me gusta el diseño.","labels":[]}
+{"id":"none-ja","language":"ja","text":"毎日便利に使っています。","labels":[]}

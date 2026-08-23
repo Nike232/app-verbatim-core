@@ -2,9 +2,11 @@ import {
   analyze,
   ConnectorRegistry,
   defineConnector,
+  evaluateRegression,
   exportReport,
   normalizeReview,
   type ReviewDataset,
+  type RegressionResult,
   type SourceRef
 } from "../../src/index.js";
 
@@ -34,5 +36,7 @@ const registry = new ConnectorRegistry([connector]);
 const result = await analyze({ store: "typed-example", appId: "app" }, { registry });
 const html: string = exportReport(result.report, "html");
 const count: number = result.report.sample.total;
+const check: RegressionResult = evaluateRegression(result.report, { maxRatingDrop: 0.25 });
 void html;
 void count;
+void check;

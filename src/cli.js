@@ -7,6 +7,7 @@ import { analyze, analyzeDataset } from "./run-analysis.js";
 import { createDemoCompetitorDataset, createDemoDataset } from "./connectors/demo.js";
 import { createDefaultRegistry } from "./connectors/index.js";
 import { exportReport, resolveExportFormat } from "./exporters.js";
+import { evaluateRegression, regressionToMarkdown } from "./regression.js";
 import { parseSourceRef } from "./source-ref.js";
 import { VERSION } from "./index.js";
 
@@ -19,6 +20,7 @@ Usage:
 
 Commands:
   analyze <url>       Fetch and analyze public reviews
+  check <url>         Fail when a release regression crosses policy
   demo                Generate a deterministic offline report
   inspect <url>       Parse and normalize an app-store URL
   connectors          List bundled connectors
@@ -32,6 +34,21 @@ Analyze options:
   --format <format>   json, csv, md, or html
   -o, --output <file> Write to a file instead of stdout
   --force             Replace an existing output file
+
+Check options:
+  --demo              Run the offline 4.8.0 regression scenario
+  --country <code>    Storefront country, for example US
+  --language <code>   Review language, for example en
+  --limit <number>    Reviews to evaluate (1-2000, default 300)
+  --min-version-reviews <n>  Required sample for each version (default 5)
+  --max-rating-drop <n>      Allowed star-rating drop (default 0.4)
+  --max-negative-increase <n> Allowed low-rating share increase (default 0.15)
+  --max-theme-increase <n>   Allowed complaint-theme increase (default 0.18)
+  --max-discovered-share <n> Allowed new issue-fingerprint share (default 0.05)
+  --format <format>   md or json (default md)
+  -o, --output <file> Write the check result to a file
+  --force             Replace an existing output file
+  --fail-on-insufficient-data  Treat a small version sample as failure
 
 Demo options:
   --compare           Include the bundled competitor fixture
@@ -56,6 +73,7 @@ async function main(argv) {
     return printJson(parseSourceRef(values[0]));
   }
   if (command === "analyze") return analyzeCommand(values);
+  if (command === "check") return checkCommand(values);
   if (command === "demo") return demoCommand(values);
   throw new UsageError(`Unknown command: ${command}. Run app-verbatim --help.`);
 }
@@ -84,17 +102,56 @@ async function demoCommand(values) {
   return writeResult(result, options);
 }
 
+async function checkCommand(values) {
+  const allowed = new Set([
+    "demo", "country", "language", "limit", "min-version-reviews", "max-rating-drop",
+    "max-negative-increase", "max-theme-increase", "max-discovered-share", "min-theme-reviews", "format", "output",
+    "force", "fail-on-insufficient-data"
+  ]);
+  const booleans = new Set(["demo", "force", "fail-on-insufficient-data"]);
+  const { positional, options } = parseArgs(values, allowed, booleans);
+  if ((options.demo && positional.length) || (!options.demo && positional.length !== 1)) {
+    throw new UsageError("Usage: app-verbatim check <app-store-url> [options], or app-verbatim check --demo");
+  }
+  const analysis = options.demo
+    ? analyzeDataset(createDemoDataset(integerOption(options, "limit", 96, 1, 500)), {
+      source: { store: "demo", appId: "primary", canonicalUrl: "demo://primary" }
+    })
+    : await analyze(positional[0], {
+      country: stringOption(options, "country"),
+      language: stringOption(options, "language"),
+      limit: integerOption(options, "limit", 300, 1, 2_000)
+    });
+  const result = evaluateRegression(analysis.report, {
+    minVersionReviews: integerOption(options, "min-version-reviews", 5, 1, 2_000),
+    maxRatingDrop: decimalOption(options, "max-rating-drop", 0.4, 0, 4),
+    maxNegativeShareIncrease: decimalOption(options, "max-negative-increase", 0.15, 0, 1),
+    maxThemeShareIncrease: decimalOption(options, "max-theme-increase", 0.18, 0, 1),
+    maxDiscoveredIssueShare: decimalOption(options, "max-discovered-share", 0.05, 0, 1),
+    minThemeReviews: integerOption(options, "min-theme-reviews", 3, 1, 2_000)
+  });
+  const format = (stringOption(options, "format") ?? inferCheckFormat(stringOption(options, "output"))).toLowerCase();
+  if (!new Set(["md", "markdown", "json"]).has(format)) throw new UsageError("Check format must be md or json.");
+  const content = format === "json" ? `${JSON.stringify(result, null, 2)}\n` : regressionToMarkdown(result);
+  await writeContent(content, stringOption(options, "output"), options.force, format === "json" ? "JSON" : "Markdown");
+  if (result.status === "fail" || (result.status === "insufficient-data" && options["fail-on-insufficient-data"])) process.exitCode = 1;
+}
+
 async function writeResult(result, options) {
   const output = stringOption(options, "output");
   const format = resolveExportFormat(stringOption(options, "format"), output);
   const reviews = [result.datasets.primary, result.datasets.competitor].filter(Boolean).flatMap((dataset) => dataset.reviews);
   const content = exportReport(result.report, format, { reviews });
+  return writeContent(content, output, options.force, `${format.toUpperCase()} report`);
+}
+
+async function writeContent(content, output, force, label) {
   if (!output) return process.stdout.write(content);
   const file = path.resolve(output);
-  if (!options.force && await exists(file)) throw new UsageError(`Output already exists: ${file}. Use --force to replace it.`);
+  if (!force && await exists(file)) throw new UsageError(`Output already exists: ${file}. Use --force to replace it.`);
   await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, content, "utf8");
-  console.error(`Wrote ${format.toUpperCase()} report to ${file}`);
+  console.error(`Wrote ${label} to ${file}`);
 }
 
 function doctor() {
@@ -147,6 +204,17 @@ function integerOption(options, key, fallback, min, max) {
   const value = Number(options[key]);
   if (value < min || value > max) throw new UsageError(`--${key} must be between ${min} and ${max}.`);
   return value;
+}
+
+function decimalOption(options, key, fallback, min, max) {
+  if (options[key] == null) return fallback;
+  const value = Number(options[key]);
+  if (!Number.isFinite(value) || value < min || value > max) throw new UsageError(`--${key} must be between ${min} and ${max}.`);
+  return value;
+}
+
+function inferCheckFormat(output) {
+  return output?.toLowerCase().endsWith(".json") ? "json" : "md";
 }
 
 async function exists(file) {

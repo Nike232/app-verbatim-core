@@ -13,7 +13,7 @@ test("prints help and version", () => {
   assert.equal(help.status, 0);
   assert.match(help.stdout, /Evidence-backed/);
   const version = run(["--version"]);
-  assert.equal(version.stdout.trim(), "0.1.0");
+  assert.equal(version.stdout.trim(), "0.2.0");
 });
 
 test("writes an offline report and refuses accidental overwrite", async () => {
@@ -37,6 +37,21 @@ test("uses exit code 2 for invalid CLI input", () => {
   const result = run(["analyze", "--limit", "wrong"]);
   assert.equal(result.status, 2);
   assert.match(result.stderr, /must be an integer|Usage/);
+});
+
+test("turns the offline release regression into a failing quality gate", () => {
+  const result = run(["check", "--demo"]);
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stdout, /review regression check/);
+  assert.match(result.stdout, /Regression signals/);
+});
+
+test("supports machine-readable release check output", () => {
+  const result = run(["check", "--demo", "--format", "json"]);
+  assert.equal(result.status, 1, result.stderr);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.status, "fail");
+  assert.equal(output.currentVersion, "4.8.0");
 });
 
 function run(args) {

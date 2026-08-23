@@ -115,11 +115,46 @@ export interface Report {
   themes: ThemeSummary[];
   versions: Array<Record<string, unknown>>;
   keywords: Array<Record<string, unknown>>;
+  discoveredIssues: Array<Record<string, any>>;
   insights: Insight[];
   comparison?: Record<string, any>;
   methodology: Record<string, any>;
   provenance?: Record<string, any>;
   aiSummary?: unknown;
+}
+
+export interface RegressionPolicy {
+  minVersionReviews?: number;
+  maxRatingDrop?: number;
+  maxNegativeShareIncrease?: number;
+  maxThemeShareIncrease?: number;
+  maxDiscoveredIssueShare?: number;
+  minThemeReviews?: number;
+}
+
+export interface RegressionViolation {
+  id: string;
+  severity: "high" | "medium";
+  title: string;
+  message: string;
+  value: number;
+  threshold: number;
+  unit: "stars" | "share";
+  evidence: Evidence[];
+}
+
+export interface RegressionResult {
+  schemaVersion: number;
+  status: "pass" | "fail" | "insufficient-data";
+  app: AppMetadata;
+  source: SourceRef;
+  evaluatedAt: string;
+  currentVersion: string | null;
+  baselineVersion: string | null;
+  policy: Required<RegressionPolicy>;
+  metrics: Record<string, any> | null;
+  violations: RegressionViolation[];
+  summary: string;
 }
 
 export interface AnalyzeOptions extends ConnectorOptions {
@@ -163,8 +198,12 @@ export function parseSourceRef(input: string): SourceRef;
 export function normalizeReview(review: Partial<Review> & Pick<Review, "source" | "appId" | "reviewId" | "body" | "rating" | "createdAt">): Review;
 export function deduplicateReviews(reviews: Review[]): Review[];
 export function classifyReview(review: Pick<Review, "title" | "body">): Array<Record<string, any>>;
+export function discoverIssues(reviews: Review[], options?: { totalReviews?: number; anchor?: number; limit?: number }): Array<Record<string, any>>;
 export function buildReport(input: { reviews: Review[]; app: AppMetadata; source: SourceRef; generatedAt?: string; aiSummary?: unknown }): Report;
 export function buildComparison(primary: Report, competitor: Report): Record<string, any>;
+export const DEFAULT_POLICY: Readonly<Required<RegressionPolicy>>;
+export function evaluateRegression(report: Report, options?: RegressionPolicy): RegressionResult;
+export function regressionToMarkdown(result: RegressionResult): string;
 export function analyze(input: string | SourceRef, options?: AnalyzeOptions): Promise<AnalysisResult>;
 export function analyzeDataset(dataset: ReviewDataset, options?: { source?: SourceRef; competitorDataset?: ReviewDataset | null; competitorSource?: SourceRef | null; generatedAt?: string }): AnalysisResult;
 

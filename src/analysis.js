@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { discoverIssues } from "./discovery.js";
 
 const DAY_MS = 86_400_000;
 
@@ -69,7 +70,7 @@ export const THEME_RULES = [
 ];
 
 const STOP_WORDS = new Set([
-  "this", "that", "with", "have", "from", "just", "your", "very", "when", "what", "would", "could", "there", "their", "they", "been", "were", "does", "app", "apps", "really", "after", "before", "because", "about", "into", "than", "then", "only", "also", "still", "even", "more", "some", "good", "great", "please", "using", "used", "work", "works", "make", "much", "like", "love", "want", "need", "一个", "这个", "那个", "还是", "但是", "就是", "没有", "可以", "非常", "真的", "已经", "现在", "使用", "软件", "应用", "希望", "感觉", "问题"
+  "the", "and", "for", "are", "was", "were", "you", "not", "but", "can", "has", "had", "its", "it's", "don", "doesn", "cannot", "how", "now", "such", "this", "that", "with", "have", "from", "just", "your", "very", "when", "what", "would", "could", "there", "their", "them", "these", "they", "been", "being", "does", "did", "app", "apps", "really", "after", "before", "because", "about", "into", "than", "then", "only", "also", "still", "even", "more", "some", "good", "great", "please", "using", "used", "use", "work", "works", "make", "much", "like", "love", "want", "need", "一个", "这个", "那个", "还是", "但是", "就是", "没有", "可以", "非常", "真的", "已经", "现在", "使用", "软件", "应用", "希望", "感觉", "问题"
 ]);
 
 export function normalizeReview(review) {
@@ -113,9 +114,17 @@ export function deduplicateReviews(reviews) {
 export function classifyReview(review) {
   const haystack = `${review.title} ${review.body}`.toLowerCase();
   return THEME_RULES.map((theme) => {
-    const hits = theme.keywords.filter((keyword) => haystack.includes(keyword.toLowerCase()));
+    const hits = theme.keywords.filter((keyword) => matchesKeyword(haystack, keyword));
     return hits.length ? { id: theme.id, hits, confidence: Math.min(0.98, 0.56 + hits.length * 0.13) } : null;
   }).filter(Boolean);
+}
+
+function matchesKeyword(haystack, value) {
+  const keyword = value.toLowerCase();
+  if (/[^a-zà-öø-ÿ\s'-]/u.test(keyword)) return haystack.includes(keyword);
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+  const inflection = !keyword.includes(" ") && keyword.length >= 4 ? "(?:s|es|ed|ing)?" : "";
+  return new RegExp(`(?:^|[^a-zà-öø-ÿ])${escaped}${inflection}(?=$|[^a-zà-öø-ÿ])`, "u").test(haystack);
 }
 
 export function buildReport({ reviews, app, source, generatedAt = new Date().toISOString(), aiSummary = null }) {
@@ -133,7 +142,12 @@ export function buildReport({ reviews, app, source, generatedAt = new Date().toI
   const averageRating = round(mean(cleanReviews.map((review) => review.rating).filter(Boolean)), 2);
   const versions = aggregateVersions(cleanReviews);
   const timeline = aggregateTimeline(cleanReviews);
-  const keywords = extractKeywords(cleanReviews);
+  const appTerms = new Set(`${app.name ?? ""} ${app.developer ?? ""}`.toLowerCase().match(/[a-z][a-z'-]{2,}|[\u4e00-\u9fff]{2,6}/g) ?? []);
+  const keywords = extractKeywords(cleanReviews, appTerms);
+  const discoveredIssues = discoverIssues(
+    cleanReviews.filter((review) => classifyReview(review).length === 0),
+    { totalReviews: cleanReviews.length, anchor }
+  );
   const insights = buildInsights(themes, versions, cleanReviews);
   const countries = aggregateValue(cleanReviews, "country", 8);
   const languages = aggregateValue(cleanReviews, "language", 8);
@@ -164,12 +178,14 @@ export function buildReport({ reviews, app, source, generatedAt = new Date().toI
     themes,
     versions,
     keywords,
+    discoveredIssues,
     insights,
     aiSummary,
     methodology: {
       evidenceRule: "Every insight must cite source reviews from the current dataset.",
       recentWindowDays: 30,
       classifier: "deterministic-keyword-v1",
+      discovery: "deterministic-phrase-mining-v1",
       caveat: "Public store reviews are a sample; findings represent only the reviews retrieved in this run."
     }
   };
@@ -250,14 +266,41 @@ function aggregateVersions(reviews) {
     group.push(review);
     groups.set(review.appVersion, group);
   }
-  return [...groups.entries()].map(([version, items]) => ({
-    version,
-    count: items.length,
-    averageRating: round(mean(items.map((item) => item.rating)), 2),
-    negativeShare: round(items.filter((item) => item.rating <= 2).length / items.length, 3),
-    lastSeenAt: items.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0].createdAt,
-    evidence: items.filter((item) => item.rating <= 2).slice(0, 2).map(evidenceRef)
-  })).sort((a, b) => Date.parse(b.lastSeenAt) - Date.parse(a.lastSeenAt)).slice(0, 12);
+  return [...groups.entries()].map(([version, items]) => {
+    const sorted = [...items].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+    const themeSignals = THEME_RULES.map((rule) => {
+      const matched = items.filter((review) => classifyReview(review).some((match) => match.id === rule.id));
+      return {
+        id: rule.id,
+        label: rule.label,
+        count: matched.length,
+        share: round(matched.length / items.length, 3),
+        negativeCount: matched.filter((review) => review.rating <= 2).length,
+        evidence: matched.sort((a, b) => evidenceScore(b) - evidenceScore(a)).slice(0, 3).map(evidenceRef)
+      };
+    }).filter((theme) => theme.count > 0).sort((a, b) => b.count - a.count);
+    return {
+      version,
+      count: items.length,
+      averageRating: round(mean(items.map((item) => item.rating)), 2),
+      negativeShare: round(items.filter((item) => item.rating <= 2).length / items.length, 3),
+      lastSeenAt: sorted[0].createdAt,
+      themeSignals,
+      evidence: sorted.filter((item) => item.rating <= 2).slice(0, 3).map(evidenceRef)
+    };
+  }).sort((a, b) => compareVersionIdentifiers(b.version, a.version) || Date.parse(b.lastSeenAt) - Date.parse(a.lastSeenAt)).slice(0, 12);
+}
+
+function compareVersionIdentifiers(left, right) {
+  const a = String(left).match(/\d+/g)?.map(Number);
+  const b = String(right).match(/\d+/g)?.map(Number);
+  if (!a?.length || !b?.length) return 0;
+  const length = Math.max(a.length, b.length);
+  for (let index = 0; index < length; index += 1) {
+    const difference = (a[index] ?? 0) - (b[index] ?? 0);
+    if (difference) return difference;
+  }
+  return 0;
 }
 
 function aggregateTimeline(reviews) {
@@ -285,13 +328,13 @@ function aggregateValue(reviews, field, limit) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit).map(([value, count]) => ({ value, count }));
 }
 
-function extractKeywords(reviews) {
+function extractKeywords(reviews, excluded = new Set()) {
   const counts = new Map();
   const bodies = reviews.filter((review) => review.rating <= 3).map((review) => review.body.toLowerCase());
   for (const body of bodies) {
     const words = body.match(/[a-z][a-z'-]{2,}|[\u4e00-\u9fff]{2,6}/g) ?? [];
     for (const word of new Set(words)) {
-      if (!STOP_WORDS.has(word) && !/^\d+$/.test(word)) counts.set(word, (counts.get(word) ?? 0) + 1);
+      if (!STOP_WORDS.has(word) && !excluded.has(word) && !/^\d+$/.test(word)) counts.set(word, (counts.get(word) ?? 0) + 1);
     }
   }
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20).map(([term, count]) => ({ term, count }));

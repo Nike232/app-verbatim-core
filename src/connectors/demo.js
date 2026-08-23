@@ -29,14 +29,17 @@ export function createDemoDataset(limit = 96) {
   const anchor = Date.parse("2026-08-23T09:00:00.000Z");
   const reviews = Array.from({ length: count }, (_, index) => {
     const [rating, text, tag] = templates[index % templates.length];
-    const recentStability = index < 18 && index % 3 === 0;
+    const currentRelease = index < 36;
+    const previousRelease = index >= 36 && index < 68;
+    const recentStability = currentRelease && index % 3 === 0;
+    const novelCameraIssue = currentRelease && index % 7 === 2 && index % 3 !== 0;
     return normalizeReview({
       source: "google-play",
       appId: "com.demo.pulse",
       reviewId: `demo-${index + 1}`,
       title: tag === "praise" ? "A thoughtful update" : null,
-      body: recentStability ? `${text} This regression started with 4.8.0.` : text,
-      rating: recentStability ? Math.min(rating, 2) : rating,
+      body: novelCameraIssue ? "Camera uploads rotate every portrait photo sideways after saving." : recentStability ? `Since 4.8.0 the app crashes during normal use. ${text}` : text,
+      rating: novelCameraIssue || recentStability ? 1 : previousRelease ? Math.min(5, rating + 1) : rating,
       language: "en",
       country: ["US", "GB", "CA", "AU"][index % 4],
       appVersion: index < 36 ? "4.8.0" : index < 68 ? "4.7.2" : "4.6.9",

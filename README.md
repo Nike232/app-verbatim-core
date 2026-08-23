@@ -1,121 +1,147 @@
-# App Verbatim Core
+# App Verbatim
 
 [![CI](https://github.com/Nike232/app-verbatim-core/actions/workflows/ci.yml/badge.svg)](https://github.com/Nike232/app-verbatim-core/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Nike232/app-verbatim-core?display_name=tag)](https://github.com/Nike232/app-verbatim-core/releases)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-1f6f50.svg)](LICENSE)
 [![Node.js 22.12+](https://img.shields.io/badge/node-%3E%3D22.12-43853d.svg)](package.json)
 
-Evidence-backed App Store and Google Play review analysis for the command line and Node.js.
+**Catch bad mobile releases from App Store and Google Play reviews—inside CI.**
 
-App Verbatim turns public app reviews into deterministic themes, version signals, competitor gaps, and recommendations that retain the source reviews behind each claim. It runs locally and does not require an AI key.
+App Verbatim compares review evidence between app versions, detects rating and complaint regressions, discovers repeated problems outside its built-in taxonomy, and can fail a GitHub workflow before a bad release becomes silent churn.
 
-> Status: `0.1.x` is the compatibility baseline. Report schema v1 is stable within the `0.1` release line; connector endpoints can change upstream.
+No dashboard. No AI key. No claim without source reviews.
 
-[简体中文](README.zh-CN.md) · [Connector API](docs/CONNECTOR_API.md) · [Report schema](docs/REPORT_SCHEMA.md) · [Core/Pro boundary](docs/CORE_PRO_BOUNDARY.md)
+[Live evidence report](https://nike232.github.io/app-verbatim-core/) · [简体中文](README.zh-CN.md) · [GitHub Action reference](docs/GITHUB_ACTION.md) · [Report schema](docs/REPORT_SCHEMA.md)
 
-## Why it is useful
+## See the failure in 30 seconds
 
-- Evidence first: every surfaced signal includes representative source reviews.
-- Reproducible: counts and themes are deterministic; datasets receive SHA-256 provenance hashes.
-- Local by default: no account, database, or model provider is required.
-- Extensible: register another review source without changing the analysis engine.
-- Scriptable: use the CLI or import the same API from Node.js.
+```bash
+npx --yes github:Nike232/app-verbatim-core check --demo
+```
 
-## Quick start
+The bundled scenario compares release `4.8.0` with `4.7.2` and exits with code `1`:
 
-Requires Node.js 22.12 or newer.
+```text
+❌ Pulse Notes review regression check
+
+Current 4.8.0       Baseline 4.7.2       Change
+1.97 stars          3.31 stars           -1.34
+72% low ratings     28% low ratings       +44 pp
+
+🔴 Average rating dropped by 1.34
+🔴 Low-rating share increased by 44%
+🟠 Stability and crashes complaints increased by 26%
+🔴 New complaint fingerprint: camera uploads
+```
+
+Every signal carries the reviews that produced it. Try a public listing:
+
+```bash
+npx --yes github:Nike232/app-verbatim-core check \
+  "https://play.google.com/store/apps/details?id=notion.id" \
+  --country US --language en --limit 300
+```
+
+## Put app-review regressions in GitHub Actions
+
+```yaml
+name: App review regression
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * *"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  review-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Nike232/app-verbatim-core@v0
+        with:
+          app-url: https://play.google.com/store/apps/details?id=YOUR.APP.ID
+          create-issue: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+The action writes a rich job summary, emits machine-readable JSON, fails on configurable thresholds, and creates or updates one deduplicated issue instead of opening alert spam. See every input and output in the [Action reference](docs/GITHUB_ACTION.md).
+
+## What is different
+
+| Capability | What App Verbatim does |
+| --- | --- |
+| Release regression gate | Compares the newest sufficiently sampled version with the previous version and returns a CI exit status. |
+| Evidence, not summaries | Rating drops, low-rating spikes, and theme changes retain representative source reviews. |
+| Unknown-problem discovery | Deterministic phrase mining surfaces repeated low-rating language not covered by predefined categories. |
+| Reproducible runs | Normalized datasets receive SHA-256 content hashes; the default engine is local and deterministic. |
+| Developer-native delivery | CLI, Node.js API, reusable GitHub Action, JSON/Markdown/CSV/standalone HTML, and a connector SDK. |
+| Two public ecosystems | Apple App Store and Google Play connectors with retry, timeout, normalization, and live contract tests. |
+
+## Analyze and compare
+
+Clone installation remains available when you want to inspect or modify the source:
 
 ```bash
 git clone https://github.com/Nike232/app-verbatim-core.git
 cd app-verbatim-core
 npm ci
-npm run start -- demo --compare --output report.html
-```
 
-Open `report.html` in a browser. This command is fully offline and uses synthetic reviews.
+# Standalone HTML report
+npm run start -- analyze \
+  "https://apps.apple.com/us/app/notion-notes-docs-tasks/id1232780281" \
+  --limit 200 --output notion.html
 
-Analyze a public listing:
-
-```bash
-npm run start -- analyze "https://apps.apple.com/us/app/notion-notes-docs-tasks/id1232780281" --limit 200 --output notion.html
-
-npm run start -- analyze "https://play.google.com/store/apps/details?id=notion.id" \
+# Evidence-backed competitor comparison
+npm run start -- analyze \
+  "https://play.google.com/store/apps/details?id=notion.id" \
   --compare "https://play.google.com/store/apps/details?id=com.evernote" \
-  --country US --language en --limit 300 --output comparison.json
+  --country US --language en --limit 300 --output comparison.html
 ```
 
-The output format is inferred from `.json`, `.csv`, `.md`, or `.html`. Use `--format` when writing to stdout.
+Output format is inferred from `.json`, `.csv`, `.md`, or `.html`. Existing files are never overwritten without `--force`.
 
-After an npm release, the same CLI is designed to work as:
+## Release policy
 
-```bash
-npx app-verbatim demo --compare --output report.html
+Defaults are deliberately visible and configurable:
+
+```text
+minimum reviews per version       5
+maximum average-rating drop       0.40 stars
+maximum low-rating-share increase 15 percentage points
+maximum known-theme increase      18 percentage points
+maximum new-issue share            5 percent
 ```
 
-The package has not been published to npm yet; clone installation is the supported `0.1.0` path.
+Use `app-verbatim check --help` for CLI flags or set the equivalent Action inputs. Insufficient evidence is reported separately and does not fail by default.
 
 ## Node.js API
 
 ```js
-import { analyze } from "app-verbatim";
+import { analyze, evaluateRegression } from "app-verbatim";
 
-const { report, datasets } = await analyze(
+const { report } = await analyze(
   "https://play.google.com/store/apps/details?id=notion.id",
-  { country: "US", language: "en", limit: 200 }
+  { country: "US", language: "en", limit: 300 }
 );
 
-console.log(report.insights);
-console.log(report.provenance.datasets[0].contentHash);
-console.log(datasets.primary.reviews.length);
+const check = evaluateRegression(report, { maxRatingDrop: 0.3 });
+console.log(check.status, check.violations);
 ```
 
-A custom connector is a small object with `supports()` and `fetch()` functions:
+Custom review sources implement only `supports()` and `fetch()`. Start with the runnable [connector example](examples/custom-connector.mjs) and [Connector API](docs/CONNECTOR_API.md).
 
-```js
-import { analyze, ConnectorRegistry, defineConnector } from "app-verbatim";
-
-const connector = defineConnector({
-  id: "example",
-  name: "Example source",
-  version: "1",
-  supports: (source) => source.store === "example",
-  async fetch(source) {
-    return {
-      app: { id: source.appId, name: "Example", store: "example" },
-      reviews: [/* normalized review objects */],
-      metadata: { connector: "example", connectorVersion: "1" }
-    };
-  }
-});
-
-const registry = new ConnectorRegistry([connector]);
-const result = await analyze({ store: "example", appId: "demo" }, { registry });
-```
-
-See [`examples/custom-connector.mjs`](examples/custom-connector.mjs) for a runnable example.
-
-## CLI reference
-
-```text
-app-verbatim analyze <url> [--compare <url>] [--country US]
-  [--language en] [--limit 300] [--format json|csv|md|html]
-  [--output report.ext] [--force]
-
-app-verbatim demo [--compare] [--limit 96] [--format ...] [--output ...]
-app-verbatim inspect <url>
-app-verbatim connectors
-app-verbatim doctor
-```
-
-An existing output file is never overwritten unless `--force` is present. CSV output guards cells that spreadsheet programs could interpret as formulas.
-
-## Verification
+## Verifiable quality
 
 ```bash
-npm ci
 npm run check
 ```
 
-`npm run check` runs syntax checks, offline unit and CLI tests, an offline demo smoke test, and an npm package-content audit. Live connector contracts run separately because stores can rate-limit CI:
+That command verifies syntax and public types, runs offline unit/CLI tests, executes the six-language theme benchmark, generates the offline demo, smoke-tests the bundled GitHub Action, and installs the packed npm artifact into a clean consumer project.
+
+The small benchmark is committed at [benchmarks/theme-eval.jsonl](benchmarks/theme-eval.jsonl); its scope and limitations are documented in [benchmarks/README.md](benchmarks/README.md). Live store contracts run separately because upstream stores can rate-limit CI:
 
 ```bash
 APP_VERBATIM_LIVE_TESTS=1 npm run test:live
@@ -123,18 +149,16 @@ APP_VERBATIM_LIVE_TESTS=1 npm run test:live
 
 ## Data and platform notice
 
-The bundled connectors read public store data and do not request App Store Connect or Google Play Console credentials. Google Play does not offer a general official API for this public research workflow, so that connector depends on public page behavior and may require maintenance. Use conservative limits and confirm that your use complies with platform terms and applicable law.
+Bundled connectors read public store data and do not request App Store Connect or Google Play Console credentials. Google Play does not provide a general official API for this public research workflow, so that connector depends on public page behavior and may require maintenance. Use conservative limits and confirm that your use complies with platform terms and applicable law.
 
-## Scope
+## Open Core and Pro
 
-This repository is the public, reusable Core: connectors, normalized models, deterministic analysis, evidence, exporters, CLI, extension API, fixtures, and tests. It intentionally excludes hosted scheduling, alerts, team administration, private owner APIs, and commercial operations. Pro is developed in a separate private codebase; no hidden Pro branch will be placed in this repository.
+This repository is the complete public engine: connectors, normalized models, release checks, evidence, deterministic analysis and discovery, exporters, CLI, GitHub Action, extension API, fixtures, benchmarks, and tests.
 
-The existing product application is also kept separate while Core stabilizes.
+Hosted scheduling, long-term history, team administration, private owner APIs, managed notifications, and commercial operations belong to the separately developed private Pro product. There is no hidden Pro branch in this repository.
 
 ## Contributing and security
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Report vulnerabilities through the private channel described in [SECURITY.md](SECURITY.md), not a public issue.
 
-## License
-
-GNU AGPL-3.0-or-later. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md). The project name and branding are not licensed as trademarks.
+GNU AGPL-3.0-or-later. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).

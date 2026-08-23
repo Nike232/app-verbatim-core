@@ -4,7 +4,7 @@ import { ConnectorError } from "./errors.js";
 
 const MAX_RSS_PAGES = 10;
 const PAGE_SIZE = 50;
-const USER_AGENT = "AppVerbatim/0.1 (+https://github.com/Nike232/app-verbatim-core)";
+const USER_AGENT = "AppVerbatim/0.2 (+https://github.com/Nike232/app-verbatim-core)";
 
 export const appleConnector = defineConnector({
   id: "apple-app-store",
@@ -23,11 +23,7 @@ export async function fetchAppleReviews(source, options = {}) {
 
   for (let page = 1; page <= Math.min(MAX_RSS_PAGES, Math.ceil(limit / PAGE_SIZE)); page += 1) {
     const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${source.appId}/sortby=mostrecent/json`;
-    const response = await fetchWithRetry(url, options);
-    if (response.status === 404 && page > 1) break;
-    if (!response.ok) throw httpError("apple-app-store", "Apple review feed", response);
-    const payload = await parseJson(response, "Apple review feed");
-    const entries = Array.isArray(payload.feed?.entry) ? payload.feed.entry : [];
+    const entries = await fetchReviewEntries(url, options, page === 1 ? 2 : 1);
     if (!entries.length) break;
     pagesFetched += 1;
     for (const entry of entries) {
@@ -56,6 +52,19 @@ export async function fetchAppleReviews(source, options = {}) {
       publicEndpoint: "iTunes Customer Reviews RSS"
     }
   };
+}
+
+async function fetchReviewEntries(url, options, attempts) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const response = await fetchWithRetry(url, options);
+    if (response.status === 404) return [];
+    if (!response.ok) throw httpError("apple-app-store", "Apple review feed", response);
+    const payload = await parseJson(response, "Apple review feed");
+    const entries = Array.isArray(payload.feed?.entry) ? payload.feed.entry : [];
+    if (entries.length || attempt === attempts) return entries;
+    await delay(300 * attempt, options.signal);
+  }
+  return [];
 }
 
 export function normalizeAppleEntry(entry, source, country = "us") {
@@ -92,7 +101,7 @@ async function fetchWithRetry(url, options) {
       const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
       const response = await fetch(url, {
         signal,
-        headers: { accept: "application/json", "user-agent": options.userAgent ?? USER_AGENT }
+        headers: { accept: "application/json", "cache-control": "no-cache", "user-agent": options.userAgent ?? USER_AGENT }
       });
       if (!isRetryableStatus(response.status) || attempt === attempts) return response;
       await delay(retryDelay(response, attempt), options.signal);

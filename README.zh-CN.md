@@ -1,55 +1,91 @@
-# App Verbatim Core
+# App Verbatim
 
-面向命令行与 Node.js 的 App Store、Google Play 评论证据分析工具。
+**从 App Store 和 Google Play 用户评论中发现版本回归，并直接把它变成 CI 质量门。**
 
-App Verbatim Core 把公开应用评论转换为确定性的主题、版本信号、竞品差距和行动建议，并为每条结论保留原始评论证据。默认完全本地运行，不需要账户、数据库或 AI Key。
+App Verbatim 会比较相邻应用版本的评论证据，识别评分下跌、低分激增和投诉主题变化，还能发现预设分类之外反复出现的新问题。全程本地、确定性运行，不需要 AI Key，每个结论都保留原始评论证据。
 
-## 快速开始
+[在线证据报告](https://nike232.github.io/app-verbatim-core/) · [English](README.md) · [GitHub Action 文档](docs/GITHUB_ACTION.md)
 
-要求 Node.js 22.12 或更高版本。
+## 30 秒看到效果
+
+```bash
+npx --yes github:Nike232/app-verbatim-core check --demo
+```
+
+内置场景会比较 `4.8.0` 与 `4.7.2`，发现：
+
+- 平均评分下降 1.34 星；
+- 一、二星占比上升 44 个百分点；
+- 崩溃投诉占比明显增长；
+- 预设分类外出现新的 `camera uploads` 问题指纹；
+- 命令返回退出码 `1`，可以直接阻断 CI。
+
+检查真实应用：
+
+```bash
+npx --yes github:Nike232/app-verbatim-core check \
+  "https://play.google.com/store/apps/details?id=notion.id" \
+  --country US --language en --limit 300
+```
+
+## GitHub Actions
+
+```yaml
+name: App review regression
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * *"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  review-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Nike232/app-verbatim-core@v0
+        with:
+          app-url: https://play.google.com/store/apps/details?id=YOUR.APP.ID
+          create-issue: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Action 会生成 GitHub Job Summary 和机器可读 JSON；超过阈值时工作流失败，并创建或更新同一个回归 Issue，不会重复刷屏。
+
+## 核心能力
+
+- App Store 与 Google Play 公共评论连接器；
+- 最新版本与上一版本的评分、低分占比和投诉主题回归检测；
+- 预设分类之外的低分问题指纹发现；
+- 原始评论证据、数据去重和 SHA-256 来源哈希；
+- CLI、Node.js API、GitHub Action 和自定义 Connector SDK；
+- JSON、CSV、Markdown、独立 HTML 报告；
+- 六语言透明评测集、跨平台 CI、真实商店契约测试。
+
+## 本地开发与验证
 
 ```bash
 git clone https://github.com/Nike232/app-verbatim-core.git
 cd app-verbatim-core
 npm ci
-npm run start -- demo --compare --output report.html
-```
-
-这是完全离线的合成数据示例。真实分析：
-
-```bash
-npm run start -- analyze "https://play.google.com/store/apps/details?id=notion.id" \
-  --country US --language en --limit 200 --output report.html
-```
-
-支持 JSON、CSV、Markdown 和独立 HTML。详细命令、Node.js API、自定义连接器示例和验证方式见 [英文 README](README.md)。
-
-## 当前边界
-
-本仓库只承载可公开复用的 Core：
-
-- App Store、Google Play 公共评论连接器；
-- 统一评论模型、去重、主题、趋势、版本与竞品分析；
-- 原始证据和数据集哈希；
-- CLI、Node.js API 与连接器扩展契约；
-- JSON、CSV、Markdown、HTML 导出；
-- 离线夹具、测试和兼容性检查。
-
-托管调度、长期历史、告警、团队权限、私有所有者接口和商业运维属于独立的私有 Pro 代码库，不会藏在本仓库的某个公开分支里。现有产品应用在 Core 稳定前也保持不动。
-
-## 验证
-
-```bash
-npm ci
 npm run check
 ```
 
-真实商店连接器测试需要显式启用：
+生成离线报告：
 
 ```bash
-APP_VERBATIM_LIVE_TESTS=1 npm run test:live
+npm run start -- demo --compare --output report.html
 ```
 
-## 许可证
+完整参数请查看 [English README](README.md)、[Connector API](docs/CONNECTOR_API.md) 和 [报告结构](docs/REPORT_SCHEMA.md)。
 
-GNU AGPL-3.0-or-later。详见 [LICENSE](LICENSE) 与 [NOTICE.md](NOTICE.md)。软件许可证不授予产品名称和视觉标识的商标权。
+## 开源与商业版边界
+
+本仓库完整开放连接器、标准化模型、版本质量门、证据、确定性分析与新问题发现、导出器、CLI、GitHub Action、扩展 API、评测集和测试。
+
+托管调度、长期历史、团队权限、私有 Owner API、托管通知及商业运营能力属于独立的私有 Pro 产品。本仓库不会放置隐藏的 Pro 分支。
+
+许可证为 GNU AGPL-3.0-or-later。数据采集和使用时请遵守平台条款及适用法律。
