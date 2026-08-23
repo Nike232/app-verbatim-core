@@ -1,5 +1,9 @@
 # App Verbatim Core
 
+[![CI](https://github.com/Nike232/app-verbatim-core/actions/workflows/ci.yml/badge.svg)](https://github.com/Nike232/app-verbatim-core/actions/workflows/ci.yml)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-1f6f50.svg)](LICENSE)
+[![Node.js 22.12+](https://img.shields.io/badge/node-%3E%3D22.12-43853d.svg)](package.json)
+
 Evidence-backed App Store and Google Play review analysis for the command line and Node.js.
 
 App Verbatim turns public app reviews into deterministic themes, version signals, competitor gaps, and recommendations that retain the source reviews behind each claim. It runs locally and does not require an AI key.
