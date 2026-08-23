@@ -4,6 +4,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-24
+
+### Added
+
+- Non-blocking `init --observe-only` onboarding mode so teams can calibrate regression thresholds before enforcing the quality gate.
+
 ## [0.4.0] - 2026-08-24
 
 ### Added

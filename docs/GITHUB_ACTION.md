@@ -16,6 +16,19 @@ steps:
 
 To create or update a regression issue, grant `issues: write`, set `create-issue: true`, and pass `${{ secrets.GITHUB_TOKEN }}` as `github-token`.
 
+## Observe before enforcing
+
+New adopters can keep the workflow non-blocking while calibrating thresholds:
+
+```yaml
+- uses: Nike232/app-verbatim-core@v0
+  with:
+    app-url: https://play.google.com/store/apps/details?id=YOUR.APP.ID
+    fail-on-regression: false
+```
+
+The result still reports `fail`, writes evidence and can maintain the deduplicated issue; only the workflow conclusion stays green. Remove `fail-on-regression: false` when the policy fits the app's review volume.
+
 ## Inputs
 
 | Input | Default | Meaning |
@@ -58,4 +71,4 @@ To create or update a regression issue, grant `issues: write`, set `create-issue
       ${{ steps.reviews.outputs.report-file }}
 ```
 
-Pin a full release tag such as `v0.4.0` when your security policy does not permit moving major tags.
+Pin a full release tag such as `v0.5.0` when your security policy does not permit moving major tags.

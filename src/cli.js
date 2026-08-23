@@ -54,6 +54,7 @@ Check options:
 
 Init options:
   --create-issue      Create or update one issue when a regression is found
+  --observe-only      Report regressions without failing the workflow
   --action-ref <ref>  Action version to use (default v0)
   -o, --output <file> Workflow path (default .github/workflows/app-verbatim.yml)
   --force             Replace an existing workflow file
@@ -152,8 +153,8 @@ async function checkCommand(values) {
 }
 
 async function initCommand(values) {
-  const allowed = new Set(["create-issue", "action-ref", "output", "force"]);
-  const booleans = new Set(["create-issue", "force"]);
+  const allowed = new Set(["create-issue", "observe-only", "action-ref", "output", "force"]);
+  const booleans = new Set(["create-issue", "observe-only", "force"]);
   const { positional, options } = parseArgs(values, allowed, booleans);
   if (positional.length !== 1) throw new UsageError("Usage: app-verbatim init <app-store-url> [options]");
 
@@ -164,13 +165,14 @@ async function initCommand(values) {
   const output = stringOption(options, "output") ?? ".github/workflows/app-verbatim.yml";
   const workflow = createWorkflow(source, {
     actionRef,
-    createIssue: Boolean(options["create-issue"])
+    createIssue: Boolean(options["create-issue"]),
+    observeOnly: Boolean(options["observe-only"])
   });
   await writeContent(workflow, output, options.force, "GitHub Actions workflow");
   console.error("Next: commit the workflow, then run it from the Actions tab.");
 }
 
-function createWorkflow(source, { actionRef, createIssue }) {
+function createWorkflow(source, { actionRef, createIssue, observeOnly }) {
   const permissions = ["permissions:", "  contents: read"];
   if (createIssue) permissions.push("  issues: write");
 
@@ -179,6 +181,10 @@ function createWorkflow(source, { actionRef, createIssue }) {
   ];
   if (source.country) inputs.push(`          country: ${JSON.stringify(source.country)}`);
   if (source.language) inputs.push(`          language: ${JSON.stringify(source.language)}`);
+  if (observeOnly) {
+    inputs.push("          # Remove this line after calibrating thresholds on your review volume.");
+    inputs.push("          fail-on-regression: false");
+  }
   if (createIssue) {
     inputs.push("          create-issue: true");
     inputs.push("          github-token: ${{ secrets.GITHUB_TOKEN }}");

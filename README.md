@@ -56,7 +56,9 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.4.0` to pin an immutable release.
+It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.0` to pin an immutable release.
+
+Want evidence before enforcing a gate? Add `--observe-only`. The workflow still reports regressions and can maintain the issue, but it stays green while you calibrate thresholds; remove the generated `fail-on-regression: false` line when the policy fits your review volume.
 
 ## Put app-review regressions in GitHub Actions
 

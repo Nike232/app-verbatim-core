@@ -13,7 +13,7 @@ test("prints help and version", () => {
   assert.equal(help.status, 0);
   assert.match(help.stdout, /Evidence-backed/);
   const version = run(["--version"]);
-  assert.equal(version.stdout.trim(), "0.4.0");
+  assert.equal(version.stdout.trim(), "0.5.0");
 });
 
 test("writes an offline report and refuses accidental overwrite", async () => {
@@ -60,6 +60,7 @@ test("scaffolds a ready-to-run GitHub Actions workflow", async () => {
     const args = [
       "init",
       "https://play.google.com/store/apps/details?id=com.example.app&hl=fr&gl=CA",
+      "--observe-only",
       "--create-issue"
     ];
     const first = run(args, directory);
@@ -71,6 +72,7 @@ test("scaffolds a ready-to-run GitHub Actions workflow", async () => {
     assert.match(workflow, /app-url: "https:\/\/play\.google\.com\/store\/apps\/details\?id=com\.example\.app"/);
     assert.match(workflow, /country: "CA"/);
     assert.match(workflow, /language: "fr"/);
+    assert.match(workflow, /fail-on-regression: false/);
     assert.match(workflow, /issues: write/);
     assert.match(workflow, /github-token: \$\{\{ secrets\.GITHUB_TOKEN \}\}/);
 
