@@ -4,6 +4,14 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-24
+
+### Added
+
+- One-command `init` workflow scaffolding with store URL validation, canonical URLs, storefront defaults, optional deduplicated issues, safe overwrite protection, and action-ref pinning.
+- Timestamped real-world Notion review snapshot across Google Play and the Apple App Store, with reproduction commands and explicit limitations.
+- Share-ready project artwork for the README and GitHub social preview.
+
 ## [0.3.0] - 2026-08-24
 
 ### Added

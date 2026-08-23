@@ -1,5 +1,7 @@
 # App Verbatim
 
+![App Verbatim 把应用评论变成版本质量门](docs/assets/app-verbatim-hero.png)
+
 **从 App Store 和 Google Play 用户评论中发现版本回归，并直接把它变成 CI 质量门。**
 
 App Verbatim 会比较相邻应用版本的评论证据，识别评分下跌、低分激增和投诉主题变化，还能发现预设分类之外反复出现的新问题。全程本地、确定性运行，不需要 AI Key，每个结论都保留原始评论证据。
@@ -27,6 +29,20 @@ npx --yes github:Nike232/app-verbatim-core check \
   "https://play.google.com/store/apps/details?id=notion.id" \
   --country US --language en --limit 300
 ```
+
+在一次带时间戳的真实检查中，这个命令在 Notion 的 **Google Play 与 Apple App Store** 评论样本里都标记出了潜在版本回归。[真实案例](docs/CASE_STUDY_NOTION.md)公开了样本量、阈值、复现命令和局限性。
+
+## 一条命令接入仓库
+
+在你的移动应用仓库中运行：
+
+```bash
+npx --yes github:Nike232/app-verbatim-core init \
+  "https://play.google.com/store/apps/details?id=YOUR.APP.ID" \
+  --create-issue
+```
+
+命令会验证并规范化商店 URL，然后生成 `.github/workflows/app-verbatim.yml`：每日定时检查、手动触发、最小权限和去重回归 Issue 都已配置。已有文件不会被静默覆盖；需要固定不可变版本时可加 `--action-ref v0.4.0`。
 
 ## GitHub Actions
 

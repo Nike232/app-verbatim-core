@@ -5,6 +5,8 @@
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-1f6f50.svg)](LICENSE)
 [![Node.js 22.12+](https://img.shields.io/badge/node-%3E%3D22.12-43853d.svg)](package.json)
 
+![App Verbatim turns app reviews into a release quality gate](docs/assets/app-verbatim-hero.png)
+
 **Catch bad mobile releases from App Store and Google Play reviews—inside CI.**
 
 App Verbatim compares review evidence between app versions, detects rating and complaint regressions, discovers repeated problems outside its built-in taxonomy, and can fail a GitHub workflow before a bad release becomes silent churn.
@@ -41,6 +43,20 @@ npx --yes github:Nike232/app-verbatim-core check \
   "https://play.google.com/store/apps/details?id=notion.id" \
   --country US --language en --limit 300
 ```
+
+On a timestamped live check, that command flagged potential release regressions in Notion reviews on **both Google Play and the Apple App Store**. The transparent [real-world case study](docs/CASE_STUDY_NOTION.md) includes the sample sizes, exact thresholds, reproduction commands, and limitations.
+
+## Add it to a repository in one command
+
+Run this from your mobile app repository:
+
+```bash
+npx --yes github:Nike232/app-verbatim-core init \
+  "https://play.google.com/store/apps/details?id=YOUR.APP.ID" \
+  --create-issue
+```
+
+It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.4.0` to pin an immutable release.
 
 ## Put app-review regressions in GitHub Actions
 

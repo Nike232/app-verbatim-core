@@ -58,4 +58,4 @@ To create or update a regression issue, grant `issues: write`, set `create-issue
       ${{ steps.reviews.outputs.report-file }}
 ```
 
-Pin a full release tag such as `v0.3.0` when your security policy does not permit moving major tags.
+Pin a full release tag such as `v0.4.0` when your security policy does not permit moving major tags.

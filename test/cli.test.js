@@ -13,7 +13,7 @@ test("prints help and version", () => {
   assert.equal(help.status, 0);
   assert.match(help.stdout, /Evidence-backed/);
   const version = run(["--version"]);
-  assert.equal(version.stdout.trim(), "0.3.0");
+  assert.equal(version.stdout.trim(), "0.4.0");
 });
 
 test("writes an offline report and refuses accidental overwrite", async () => {
@@ -54,6 +54,37 @@ test("supports machine-readable release check output", () => {
   assert.equal(output.currentVersion, "4.8.0");
 });
 
-function run(args) {
-  return spawnSync(process.execPath, [cli, ...args], { cwd: root, encoding: "utf8", windowsHide: true });
+test("scaffolds a ready-to-run GitHub Actions workflow", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "app-verbatim-init-"));
+  try {
+    const args = [
+      "init",
+      "https://play.google.com/store/apps/details?id=com.example.app&hl=fr&gl=CA",
+      "--create-issue"
+    ];
+    const first = run(args, directory);
+    assert.equal(first.status, 0, first.stderr);
+    assert.match(first.stderr, /Next: commit the workflow/);
+
+    const workflow = await readFile(path.join(directory, ".github", "workflows", "app-verbatim.yml"), "utf8");
+    assert.match(workflow, /uses: Nike232\/app-verbatim-core@v0/);
+    assert.match(workflow, /app-url: "https:\/\/play\.google\.com\/store\/apps\/details\?id=com\.example\.app"/);
+    assert.match(workflow, /country: "CA"/);
+    assert.match(workflow, /language: "fr"/);
+    assert.match(workflow, /issues: write/);
+    assert.match(workflow, /github-token: \$\{\{ secrets\.GITHUB_TOKEN \}\}/);
+
+    const duplicate = run(args, directory);
+    assert.equal(duplicate.status, 2);
+    assert.match(duplicate.stderr, /already exists/);
+
+    const forced = run([...args, "--force"], directory);
+    assert.equal(forced.status, 0, forced.stderr);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+function run(args, cwd = root) {
+  return spawnSync(process.execPath, [cli, ...args], { cwd, encoding: "utf8", windowsHide: true });
 }
