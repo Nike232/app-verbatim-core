@@ -7,7 +7,7 @@ Core is useful on its own and contains the quality-critical path:
 - public-store connectors and normalized review model;
 - deterministic deduplication, aggregation, themes, unknown-issue discovery, trends, versions, and competitor comparison;
 - evidence citations and provenance hashes;
-- release-regression policy engine, CLI, Node.js API, and reusable GitHub Action;
+- release-regression policy engine, CLI, Node.js API, reusable GitHub Action, and local MCP server;
 - JSON, CSV, Markdown, and standalone HTML exporters;
 - connector extension API, transparent benchmarks, fixtures, tests, and compatibility policy.
 

@@ -3,6 +3,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const root = path.resolve(import.meta.dirname, "..");
 const npmCli = process.env.npm_execpath;
@@ -20,16 +22,26 @@ try {
     import assert from "node:assert/strict";
     import { analyzeDataset, createDemoDataset, VERSION } from "app-verbatim";
     const { report } = analyzeDataset(createDemoDataset(8), { source: { store: "demo", appId: "primary" } });
-    assert.equal(VERSION, "0.2.0");
+    assert.equal(VERSION, "0.3.0");
     assert.equal(report.sample.total, 8);
   `, "utf8");
   run(process.execPath, [npmCli, "install", "--ignore-scripts", tarball], consumer);
   run(process.execPath, ["smoke.mjs"], consumer);
   const output = path.join(consumer, "report.json");
-  run(process.execPath, [path.join(consumer, "node_modules", "app-verbatim", "src", "cli.js"), "demo", "--limit", "8", "--output", output], consumer);
+  const installedCli = path.join(consumer, "node_modules", "app-verbatim", "src", "cli.js");
+  run(process.execPath, [installedCli, "demo", "--limit", "8", "--output", output], consumer);
   const report = JSON.parse(await readFile(output, "utf8"));
   assert.equal(report.sample.total, 8);
-  console.log("Packed-package import and CLI smoke tests passed.");
+  const client = new Client({ name: "packed-app-verbatim-smoke", version: "1.0.0" });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [installedCli, "mcp"], cwd: consumer, stderr: "pipe" });
+  try {
+    await client.connect(transport);
+    const tools = await client.listTools();
+    assert.ok(tools.tools.some((tool) => tool.name === "check_release_regression"));
+  } finally {
+    await client.close();
+  }
+  console.log("Packed-package import, CLI, and MCP smoke tests passed.");
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

@@ -1,6 +1,6 @@
 # Security policy
 
-The `0.2.x` release line receives security fixes while it is the current line.
+The `0.3.x` release line receives security fixes while it is the current line.
 
 Do not disclose suspected vulnerabilities in a public issue. Use GitHub's private vulnerability reporting for `Nike232/app-verbatim-core`. Include the affected version, reproduction, impact, and any suggested mitigation. If private reporting is unavailable, open a minimal issue asking the maintainer to enable a private contact channel without including exploit details.
 

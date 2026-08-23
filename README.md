@@ -69,6 +69,29 @@ jobs:
 
 The action writes a rich job summary, emits machine-readable JSON, fails on configurable thresholds, and creates or updates one deduplicated issue instead of opening alert spam. See every input and output in the [Action reference](docs/GITHUB_ACTION.md).
 
+## Give your coding agent direct access
+
+App Verbatim also runs as a local MCP server. Add this command to any stdio-compatible MCP client:
+
+```json
+{
+  "mcpServers": {
+    "app-verbatim": {
+      "command": "npx",
+      "args": ["--yes", "github:Nike232/app-verbatim-core", "mcp"]
+    }
+  }
+}
+```
+
+Agents receive three read-only tools:
+
+- `check_release_regression` — ask “Did the newest release make reviews worse?”
+- `analyze_app_reviews` — inspect themes, version signals, and newly discovered problems with evidence.
+- `compare_app_reviews` — find concentrated pain gaps between two public app listings.
+
+The server uses stdio, writes no local state, and requires no model-provider key. See [MCP setup and tool reference](docs/MCP.md).
+
 ## What is different
 
 | Capability | What App Verbatim does |
@@ -77,7 +100,7 @@ The action writes a rich job summary, emits machine-readable JSON, fails on conf
 | Evidence, not summaries | Rating drops, low-rating spikes, and theme changes retain representative source reviews. |
 | Unknown-problem discovery | Deterministic phrase mining surfaces repeated low-rating language not covered by predefined categories. |
 | Reproducible runs | Normalized datasets receive SHA-256 content hashes; the default engine is local and deterministic. |
-| Developer-native delivery | CLI, Node.js API, reusable GitHub Action, JSON/Markdown/CSV/standalone HTML, and a connector SDK. |
+| Developer- and agent-native delivery | CLI, Node.js API, reusable GitHub Action, local MCP server, JSON/Markdown/CSV/standalone HTML, and a connector SDK. |
 | Two public ecosystems | Apple App Store and Google Play connectors with retry, timeout, normalization, and live contract tests. |
 
 ## Analyze and compare
@@ -139,7 +162,7 @@ Custom review sources implement only `supports()` and `fetch()`. Start with the 
 npm run check
 ```
 
-That command verifies syntax and public types, runs offline unit/CLI tests, executes the six-language theme benchmark, generates the offline demo, smoke-tests the bundled GitHub Action, and installs the packed npm artifact into a clean consumer project.
+That command verifies syntax and public types, runs offline unit/CLI tests, executes the six-language theme benchmark, performs a real MCP stdio handshake and tool call, generates the offline demo, smoke-tests the bundled GitHub Action, and installs the packed npm artifact into a clean consumer project.
 
 The small benchmark is committed at [benchmarks/theme-eval.jsonl](benchmarks/theme-eval.jsonl); its scope and limitations are documented in [benchmarks/README.md](benchmarks/README.md). Live store contracts run separately because upstream stores can rate-limit CI:
 
@@ -153,7 +176,7 @@ Bundled connectors read public store data and do not request App Store Connect o
 
 ## Open Core and Pro
 
-This repository is the complete public engine: connectors, normalized models, release checks, evidence, deterministic analysis and discovery, exporters, CLI, GitHub Action, extension API, fixtures, benchmarks, and tests.
+This repository is the complete public engine: connectors, normalized models, release checks, evidence, deterministic analysis and discovery, exporters, CLI, GitHub Action, MCP server, extension API, fixtures, benchmarks, and tests.
 
 Hosted scheduling, long-term history, team administration, private owner APIs, managed notifications, and commercial operations belong to the separately developed private Pro product. There is no hidden Pro branch in this repository.
 

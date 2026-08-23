@@ -21,6 +21,7 @@ Usage:
 Commands:
   analyze <url>       Fetch and analyze public reviews
   check <url>         Fail when a release regression crosses policy
+  mcp                 Start the local MCP server over stdio
   demo                Generate a deterministic offline report
   inspect <url>       Parse and normalize an app-store URL
   connectors          List bundled connectors
@@ -74,6 +75,11 @@ async function main(argv) {
   }
   if (command === "analyze") return analyzeCommand(values);
   if (command === "check") return checkCommand(values);
+  if (command === "mcp") {
+    if (values.length) throw new UsageError("Usage: app-verbatim mcp");
+    const { startMcpServer } = await import("./mcp.js");
+    return startMcpServer();
+  }
   if (command === "demo") return demoCommand(values);
   throw new UsageError(`Unknown command: ${command}. Run app-verbatim --help.`);
 }

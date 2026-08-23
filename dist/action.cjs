@@ -850,7 +850,7 @@ var ConnectorError = class extends Error {
 // src/connectors/apple.js
 var MAX_RSS_PAGES = 10;
 var PAGE_SIZE = 50;
-var USER_AGENT = "AppVerbatim/0.2 (+https://github.com/Nike232/app-verbatim-core)";
+var USER_AGENT = "AppVerbatim/0.3 (+https://github.com/Nike232/app-verbatim-core)";
 var appleConnector = defineConnector({
   id: "apple-app-store",
   name: "Apple App Store public reviews",

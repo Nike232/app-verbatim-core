@@ -4,6 +4,15 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-24
+
+### Added
+
+- Local stdio MCP server for agent-native review analysis without an additional AI key.
+- Read-only `check_release_regression`, `analyze_app_reviews`, and `compare_app_reviews` MCP tools.
+- Protocol-level MCP smoke test covering initialization, discovery, structured tool output, and clean shutdown.
+- Packed-package MCP verification and client-agnostic configuration documentation.
+
 ## [0.2.0] - 2026-08-24
 
 ### Added

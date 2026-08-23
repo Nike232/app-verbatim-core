@@ -13,7 +13,7 @@ test("prints help and version", () => {
   assert.equal(help.status, 0);
   assert.match(help.stdout, /Evidence-backed/);
   const version = run(["--version"]);
-  assert.equal(version.stdout.trim(), "0.2.0");
+  assert.equal(version.stdout.trim(), "0.3.0");
 });
 
 test("writes an offline report and refuses accidental overwrite", async () => {

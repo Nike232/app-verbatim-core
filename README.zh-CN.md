@@ -55,13 +55,30 @@ jobs:
 
 Action 会生成 GitHub Job Summary 和机器可读 JSON；超过阈值时工作流失败，并创建或更新同一个回归 Issue，不会重复刷屏。
 
+## 让 Agent 直接调用
+
+App Verbatim 同时提供本地 MCP Server。把下面的命令加入支持 stdio 的 MCP 客户端：
+
+```json
+{
+  "mcpServers": {
+    "app-verbatim": {
+      "command": "npx",
+      "args": ["--yes", "github:Nike232/app-verbatim-core", "mcp"]
+    }
+  }
+}
+```
+
+Agent 可以调用三个只读工具：版本回归检查、单个应用评论分析、两个应用竞品对比。所有结果都附带评论证据，不需要额外的模型 API Key。详细说明见 [MCP 文档](docs/MCP.md)。
+
 ## 核心能力
 
 - App Store 与 Google Play 公共评论连接器；
 - 最新版本与上一版本的评分、低分占比和投诉主题回归检测；
 - 预设分类之外的低分问题指纹发现；
 - 原始评论证据、数据去重和 SHA-256 来源哈希；
-- CLI、Node.js API、GitHub Action 和自定义 Connector SDK；
+- CLI、Node.js API、GitHub Action、本地 MCP Server 和自定义 Connector SDK；
 - JSON、CSV、Markdown、独立 HTML 报告；
 - 六语言透明评测集、跨平台 CI、真实商店契约测试。
 
@@ -84,7 +101,7 @@ npm run start -- demo --compare --output report.html
 
 ## 开源与商业版边界
 
-本仓库完整开放连接器、标准化模型、版本质量门、证据、确定性分析与新问题发现、导出器、CLI、GitHub Action、扩展 API、评测集和测试。
+本仓库完整开放连接器、标准化模型、版本质量门、证据、确定性分析与新问题发现、导出器、CLI、GitHub Action、MCP Server、扩展 API、评测集和测试。
 
 托管调度、长期历史、团队权限、私有 Owner API、托管通知及商业运营能力属于独立的私有 Pro 产品。本仓库不会放置隐藏的 Pro 分支。
 
