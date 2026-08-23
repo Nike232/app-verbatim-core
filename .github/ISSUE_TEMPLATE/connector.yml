@@ -1,0 +1,28 @@
+name: Connector request or breakage
+description: Request a source or report an upstream compatibility problem.
+title: "connector: "
+labels: [connector]
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Store or source
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Request type
+      options:
+        - Existing connector stopped working
+        - New public source
+        - Normalization problem
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Safe reproduction or public documentation
+      description: Never include a signed URL, cookie, token, or private review export.
+    validations:
+      required: true

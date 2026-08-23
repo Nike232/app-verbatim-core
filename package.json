@@ -1,0 +1,75 @@
+{
+  "name": "app-verbatim",
+  "version": "0.1.0",
+  "description": "Evidence-backed App Store and Google Play review analysis for the command line and Node.js.",
+  "keywords": [
+    "app-store",
+    "google-play",
+    "reviews",
+    "product-research",
+    "competitive-analysis",
+    "cli"
+  ],
+  "homepage": "https://github.com/Nike232/app-verbatim-core#readme",
+  "bugs": {
+    "url": "https://github.com/Nike232/app-verbatim-core/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nike232/app-verbatim-core.git"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Tomfng",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./connectors": {
+      "types": "./src/index.d.ts",
+      "import": "./src/connectors/index.js"
+    },
+    "./exporters": {
+      "types": "./src/index.d.ts",
+      "import": "./src/exporters.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "app-verbatim": "./src/cli.js"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE",
+    "NOTICE.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test test/*.test.js",
+    "test:live": "node --test test/connectors-live.test.js",
+    "check:syntax": "node --check src/cli.js && node --check src/index.js",
+    "check:types": "tsc -p test/types/tsconfig.json --noEmit",
+    "check:demo": "node scripts/demo-smoke.mjs",
+    "check:pack": "npm pack --dry-run && node scripts/package-smoke.mjs",
+    "check": "npm run check:syntax && npm run check:types && npm test && npm run check:demo && npm run check:pack"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "@mradex77/google-play-scraper": "^1.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

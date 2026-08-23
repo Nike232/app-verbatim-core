@@ -1,0 +1,23 @@
+name: Live connector contracts
+
+on:
+  schedule:
+    - cron: "17 3 * * 2,5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:live
+        env:
+          APP_VERBATIM_LIVE_TESTS: "1"
