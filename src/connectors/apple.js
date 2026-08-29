@@ -4,12 +4,13 @@ import { ConnectorError } from "./errors.js";
 
 const MAX_RSS_PAGES = 10;
 const PAGE_SIZE = 50;
-const USER_AGENT = "AppVerbatim/0.3 (+https://github.com/Nike232/app-verbatim-core)";
+const APP_STORE_PAGE_REVIEW_LIMIT = 10;
+const USER_AGENT = "AppVerbatim/0.5.1 (+https://github.com/Nike232/app-verbatim-core)";
 
 export const appleConnector = defineConnector({
   id: "apple-app-store",
   name: "Apple App Store public reviews",
-  version: "1",
+  version: "2",
   supports: (source) => source?.store === "apple-app-store",
   fetch: fetchAppleReviews
 });
@@ -20,6 +21,8 @@ export async function fetchAppleReviews(source, options = {}) {
   const app = await fetchApp(source.appId, country, options);
   const reviews = [];
   let pagesFetched = 0;
+  let publicEndpoint = "iTunes Customer Reviews RSS";
+  let fallbackUsed = false;
 
   for (let page = 1; page <= Math.min(MAX_RSS_PAGES, Math.ceil(limit / PAGE_SIZE)); page += 1) {
     const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${source.appId}/sortby=mostrecent/json`;
@@ -32,6 +35,13 @@ export async function fetchAppleReviews(source, options = {}) {
       if (reviews.length >= limit) break;
     }
     if (reviews.length >= limit || entries.length < PAGE_SIZE) break;
+  }
+
+  if (!reviews.length) {
+    reviews.push(...await fetchAppleReviewPage(source, country, { ...options, limit }));
+    pagesFetched = 1;
+    publicEndpoint = "App Store public reviews page";
+    fallbackUsed = true;
   }
 
   return {
@@ -49,7 +59,11 @@ export async function fetchAppleReviews(source, options = {}) {
       connectorVersion: appleConnector.version,
       country: country.toUpperCase(),
       pagesFetched,
-      publicEndpoint: "iTunes Customer Reviews RSS"
+      publicEndpoint,
+      fallbackUsed,
+      requestedLimit: limit,
+      returnedReviews: reviews.length,
+      versionDataAvailable: reviews.some((review) => Boolean(review.appVersion))
     }
   };
 }
@@ -84,6 +98,71 @@ export function normalizeAppleEntry(entry, source, country = "us") {
   });
 }
 
+export function normalizeApplePageReview(entry, source, country = "us", sourceUrl = source.canonicalUrl) {
+  return normalizeReview({
+    source: "apple-app-store",
+    appId: source.appId,
+    reviewId: entry.id,
+    title: entry.title,
+    body: entry.contents,
+    rating: entry.rating,
+    author: entry.reviewerName,
+    country: country.toUpperCase(),
+    sourceUrl,
+    createdAt: entry.date,
+    updatedAt: entry.date
+  });
+}
+
+export function parseAppleReviewPage(html, source, country = "us", limit = APP_STORE_PAGE_REVIEW_LIMIT) {
+  const match = String(html).match(/<script[^>]*\bid=(?:"|')?serialized-server-data(?:"|')?[^>]*>([\s\S]*?)<\/script>/i);
+  if (!match) return [];
+
+  let payload;
+  try {
+    payload = JSON.parse(match[1]);
+  } catch (error) {
+    throw new ConnectorError("apple-app-store", "Apple public reviews page returned invalid embedded data.", { cause: error, retryable: true });
+  }
+
+  const pageUrl = appleReviewPageUrl(source.appId, country);
+  const reviews = [];
+  const reviewIds = new Set();
+  const queue = [payload];
+  for (let cursor = 0; cursor < queue.length && reviews.length < limit; cursor += 1) {
+    const value = queue[cursor];
+    if (!value || typeof value !== "object") continue;
+    if (value.$kind === "Review") {
+      const id = String(value.id ?? "").trim();
+      const rating = Number(value.rating);
+      const body = String(value.contents ?? "").trim();
+      if (id && body && rating >= 1 && rating <= 5 && !reviewIds.has(id)) {
+        reviewIds.add(id);
+        reviews.push(normalizeApplePageReview(value, source, country, pageUrl));
+      }
+    }
+    queue.push(...(Array.isArray(value) ? value : Object.values(value)));
+  }
+  return reviews;
+}
+
+async function fetchAppleReviewPage(source, country, options) {
+  const response = await fetchWithRetry(appleReviewPageUrl(source.appId, country), {
+    ...options,
+    accept: "text/html,application/xhtml+xml"
+  });
+  if (!response.ok) throw httpError("apple-app-store", "Apple public reviews page", response);
+  const reviews = parseAppleReviewPage(await response.text(), source, country, Math.min(options.limit, APP_STORE_PAGE_REVIEW_LIMIT));
+  if (!reviews.length) {
+    throw new ConnectorError("apple-app-store", "Apple public review sources returned no reviews.", { status: 502, retryable: true });
+  }
+  return reviews;
+}
+
+function appleReviewPageUrl(appId, country) {
+  return `https://apps.apple.com/${country}/app/${appId}?see-all=reviews&platform=iphone`;
+}
+
 async function fetchApp(appId, country, options) {
   const response = await fetchWithRetry(`https://itunes.apple.com/lookup?id=${appId}&country=${country}`, options);
   if (!response.ok) throw httpError("apple-app-store", "Apple app lookup", response);
@@ -99,9 +178,14 @@ async function fetchWithRetry(url, options) {
     try {
       const timeoutSignal = AbortSignal.timeout(clamp(options.timeoutMs ?? 20_000, 1_000, 60_000));
       const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
-      const response = await fetch(url, {
+      const response = await (options.fetch ?? fetch)(url, {
         signal,
-        headers: { accept: "application/json", "cache-control": "no-cache", "user-agent": options.userAgent ?? USER_AGENT }
+        headers: {
+          accept: options.accept ?? "application/json",
+          "cache-control": "no-cache",
+          "user-agent": options.userAgent ?? USER_AGENT,
+          ...options.headers
+        }
       });
       if (!isRetryableStatus(response.status) || attempt === attempts) return response;
       await delay(retryDelay(response, attempt), options.signal);

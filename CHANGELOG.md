@@ -4,6 +4,13 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-08-30
+
+### Fixed
+
+- Restored Apple App Store analysis when the legacy customer-review RSS feed returns an empty result by falling back to the reviews rendered on Apple's public App Store page.
+- Made fallback provenance explicit, deduplicated embedded review objects, and reported when public fallback reviews do not contain app-version data.
+
 ## [0.5.0] - 2026-08-24
 
 ### Added

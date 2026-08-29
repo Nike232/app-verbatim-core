@@ -190,7 +190,7 @@ APP_VERBATIM_LIVE_TESTS=1 npm run test:live
 
 ## Data and platform notice
 
-Bundled connectors read public store data and do not request App Store Connect or Google Play Console credentials. Google Play does not provide a general official API for this public research workflow, so that connector depends on public page behavior and may require maintenance. Use conservative limits and confirm that your use complies with platform terms and applicable law.
+Bundled connectors read public store data and do not request App Store Connect or Google Play Console credentials. The Apple connector prefers the customer-review RSS feed and falls back to the reviews rendered on Apple's public App Store page when that feed is empty. The fallback currently exposes at most 10 visible reviews and does not include app-version fields, so version regression checks report insufficient evidence instead of guessing. Google Play does not provide a general official API for this public research workflow, so both public connectors may require maintenance as store behavior changes. Use conservative limits and confirm that your use complies with platform terms and applicable law.
 
 ## Open Core and Pro
 
