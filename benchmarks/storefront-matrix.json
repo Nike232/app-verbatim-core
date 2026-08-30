@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "description": "A paired Apple App Store and Google Play matrix for measuring decision coverage and theme-signal coverage across US English and German storefronts without committing review data.",
+  "minimumApps": 10,
+  "expectedCases": 40,
+  "limit": 300,
+  "storefronts": [
+    { "slug": "us-en", "country": "US", "language": "en" },
+    { "slug": "de-de", "country": "DE", "language": "de" }
+  ],
+  "apps": [
+    { "slug": "bitwarden", "name": "Bitwarden", "category": "security", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=com.x8bit.bitwarden" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id1137397744" }
+    ] },
+    { "slug": "signal", "name": "Signal", "category": "communication", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=org.thoughtcrime.securesms" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id874139669" }
+    ] },
+    { "slug": "firefox", "name": "Firefox", "category": "browser", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=org.mozilla.firefox" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id989804926" }
+    ] },
+    { "slug": "duckduckgo", "name": "DuckDuckGo", "category": "browser", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=com.duckduckgo.mobile.android" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id663592361" }
+    ] },
+    { "slug": "dropbox", "name": "Dropbox", "category": "cloud", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=com.dropbox.android" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id327630330" }
+    ] },
+    { "slug": "notion", "name": "Notion", "category": "productivity", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=notion.id" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id1232780281" }
+    ] },
+    { "slug": "todoist", "name": "Todoist", "category": "productivity", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=com.todoist" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id572688855" }
+    ] },
+    { "slug": "slack", "name": "Slack", "category": "work", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=com.Slack" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id618783545" }
+    ] },
+    { "slug": "discord", "name": "Discord", "category": "communication", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=com.discord" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id985746746" }
+    ] },
+    { "slug": "spotify", "name": "Spotify", "category": "media", "sources": [
+      { "store": "google-play", "url": "https://play.google.com/store/apps/details?id=com.spotify.music" },
+      { "store": "apple-app-store", "url": "https://apps.apple.com/app/id324684580" }
+    ] }
+  ]
+}

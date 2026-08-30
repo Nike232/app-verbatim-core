@@ -1,6 +1,6 @@
 {
   "name": "app-verbatim",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Catch App Store and Google Play review regressions in CI, with source evidence.",
   "keywords": [
     "app-store",
@@ -58,15 +58,16 @@
     "test": "node --test test/*.test.js",
     "test:live": "node --test test/connectors-live.test.js",
     "build:action": "esbuild src/action.js --bundle --platform=node --target=node24 --format=cjs --outfile=dist/action.cjs --legal-comments=external",
-    "check:syntax": "node --check src/cli.js && node --check src/index.js && node --check src/version.js && node --check src/regression.js && node --check src/discovery.js && node --check src/mcp.js && node --check src/action.js && node --check scripts/validate-release-cohort.mjs",
+    "check:syntax": "node --check src/cli.js && node --check src/index.js && node --check src/version.js && node --check src/regression.js && node --check src/discovery.js && node --check src/mcp.js && node --check src/action.js && node --check scripts/lib/cohort.mjs && node --check scripts/validate-release-cohort.mjs",
     "check:types": "tsc -p test/types/tsconfig.json --noEmit",
     "check:demo": "node scripts/demo-smoke.mjs",
     "check:eval": "node scripts/evaluate.mjs",
-    "check:cohort": "node scripts/validate-release-cohort.mjs --validate-only",
+    "check:cohort": "node scripts/validate-release-cohort.mjs --validate-only && node scripts/validate-release-cohort.mjs --validate-only --manifest benchmarks/storefront-matrix.json",
     "check:mcp": "node scripts/mcp-smoke.mjs",
     "check:action": "node scripts/verify-action-bundle.mjs && node scripts/action-smoke.mjs",
     "check:pack": "npm pack --dry-run && node scripts/package-smoke.mjs",
     "validate:cohort": "node scripts/validate-release-cohort.mjs",
+    "validate:matrix": "node scripts/validate-release-cohort.mjs --manifest benchmarks/storefront-matrix.json",
     "check": "npm run check:syntax && npm run check:types && npm test && npm run check:eval && npm run check:cohort && npm run check:demo && npm run check:mcp && npm run check:action && npm run check:pack"
   },
   "engines": {

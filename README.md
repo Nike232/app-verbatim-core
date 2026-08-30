@@ -58,7 +58,7 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.5` to pin an immutable release.
+It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.6` to pin an immutable release.
 
 The recommended command starts in observe-only mode: regressions and evidence still appear, but the workflow stays green while you learn the app's normal review volume. Remove the generated `fail-on-regression: false` line when the policy fits; omit `--observe-only` only when you intentionally want enforcement from the first run.
 
@@ -116,10 +116,10 @@ The server uses stdio, writes no local state, and requires no model-provider key
 
 | Capability | What App Verbatim does |
 | --- | --- |
-| Release regression gate | Evaluates the actual newest version against a sufficiently sampled earlier baseline; under-sampled newest releases remain explicitly inconclusive. |
+| Release regression gate | Evaluates the actual newest version against a sufficiently sampled earlier baseline; under-sampled newest releases remain explicitly inconclusive, positive theme mentions cannot fail a release, and feature demand remains advisory. |
 | Evidence, not summaries | Rating drops, low-rating spikes, and theme changes retain representative source reviews. |
 | Unknown-problem discovery | Deterministic phrase mining surfaces repeated low-rating language not covered by predefined categories. |
-| Reproducible runs | Normalized datasets receive SHA-256 content hashes; the default engine is local and deterministic. |
+| Reproducible runs | Normalized datasets receive SHA-256 content hashes; the default engine is local and deterministic, and partial upstream pages are rejected before they can change a release conclusion. |
 | Developer- and agent-native delivery | CLI, Node.js API, reusable GitHub Action, local MCP server, JSON/Markdown/CSV/standalone HTML, and a connector SDK. |
 | Two public ecosystems | Apple App Store and Google Play connectors with retry, timeout, normalization, and live contract tests. |
 
@@ -154,7 +154,7 @@ Defaults are deliberately visible and configurable:
 minimum reviews per version       10
 maximum average-rating drop       0.40 stars
 maximum low-rating-share increase 15 percentage points
-maximum known-theme increase      18 percentage points
+maximum low-rated problem-theme increase 18 percentage points
 maximum new-issue share            5 percent
 ```
 
@@ -182,9 +182,9 @@ Custom review sources implement only `supports()` and `fetch()`. Start with the 
 npm run check
 ```
 
-That command verifies syntax and public types, runs offline unit/CLI tests, executes the six-language theme benchmark, performs a real MCP stdio handshake and tool call, generates the offline demo, smoke-tests the bundled GitHub Action, and installs the packed npm artifact into a clean consumer project.
+That command verifies syntax and public types, runs offline unit/CLI tests, executes the six-language theme benchmark, validates both live-cohort manifests without network access, performs a real MCP stdio handshake and tool call, generates the offline demo, smoke-tests the bundled GitHub Action, and installs the packed npm artifact into a clean consumer project.
 
-The small benchmark is committed at [benchmarks/theme-eval.jsonl](benchmarks/theme-eval.jsonl); its scope and limitations are documented in [benchmarks/README.md](benchmarks/README.md). A separate [20-app real-store cohort](benchmarks/RELEASE_COHORT.md) measures whether the release policy can reach a decision and records timestamped, aggregate-only human adjudication. Live store contracts run separately because upstream stores can rate-limit CI:
+The small benchmark is committed at [benchmarks/theme-eval.jsonl](benchmarks/theme-eval.jsonl); its scope and limitations are documented in [benchmarks/README.md](benchmarks/README.md). A separate [20-app real-store cohort](benchmarks/RELEASE_COHORT.md) measures whether the release policy can reach a decision, while the [40-case cross-storefront matrix](benchmarks/STOREFRONT_MATRIX.md) challenges Apple and Google behavior in US English and German storefronts. Both record aggregate-only human adjudication. Live store contracts run separately because upstream stores can rate-limit CI:
 
 ```bash
 APP_VERBATIM_LIVE_TESTS=1 npm run test:live
@@ -192,7 +192,7 @@ APP_VERBATIM_LIVE_TESTS=1 npm run test:live
 
 ## Data and platform notice
 
-Bundled connectors read public store data and do not request App Store Connect or Google Play Console credentials. The Apple connector prefers the customer-review RSS feed and falls back to the reviews rendered on Apple's public App Store page when that feed is empty. The fallback currently exposes at most 10 visible reviews and does not include app-version fields, so version regression checks report insufficient evidence instead of guessing. Google Play does not provide a general official API for this public research workflow, so both public connectors may require maintenance as store behavior changes. Use conservative limits and confirm that your use complies with platform terms and applicable law.
+Bundled connectors read public store data and do not request App Store Connect or Google Play Console credentials. The Apple connector prefers the customer-review RSS feed and falls back to the reviews rendered on Apple's public App Store page when that feed is empty. The fallback currently exposes at most 10 visible reviews and does not include app-version fields, so version regression checks report insufficient evidence instead of guessing. A persistent empty later RSS page is also treated as a partial source, never as a trustworthy pass or fail. Google Play does not provide a general official API for this public research workflow, so both public connectors may require maintenance as store behavior changes. Use conservative limits and confirm that your use complies with platform terms and applicable law.
 
 ## Open Core and Pro
 

@@ -150,6 +150,12 @@ export interface VersionEvidenceStatus {
   baseline: { version: string | null; count: number; missingReviews: number };
 }
 
+export interface SourceEvidenceStatus {
+  ready: boolean;
+  connector: string | null;
+  reason: string | null;
+}
+
 export interface RegressionResult {
   schemaVersion: number;
   status: "pass" | "fail" | "insufficient-data";
@@ -159,6 +165,7 @@ export interface RegressionResult {
   currentVersion: string | null;
   baselineVersion: string | null;
   versionEvidence: VersionEvidenceStatus;
+  sourceEvidence: SourceEvidenceStatus;
   policy: Required<RegressionPolicy>;
   metrics: Record<string, any> | null;
   violations: RegressionViolation[];

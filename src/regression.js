@@ -19,9 +19,12 @@ export function evaluateRegression(report, options = {}) {
     ? report.versions.slice(1).find((version) => version.version !== current.version && version.count >= policy.minVersionReviews) ?? null
     : null;
   const versionEvidence = buildVersionEvidence(current, baseline ?? baselineCandidate, policy.minVersionReviews, Boolean(currentEligible && baseline));
+  const sourceEvidence = buildSourceEvidence(report);
 
-  if (!currentEligible || !baseline) {
-    const summary = !current
+  if (!sourceEvidence.ready || !currentEligible || !baseline) {
+    const summary = !sourceEvidence.ready
+      ? `Public review source returned a partial sample (${sourceEvidence.reason}); release comparison is unsafe.`
+      : !current
       ? `Need at least ${policy.minVersionReviews} reviews for the newest version and one earlier baseline; found no version data.`
       : !currentEligible
         ? `Newest version ${current.version} has ${reviewCount(current.count)}; need at least ${policy.minVersionReviews} before comparing it.`
@@ -37,6 +40,7 @@ export function evaluateRegression(report, options = {}) {
       currentVersion: current?.version ?? null,
       baselineVersion: baseline?.version ?? null,
       versionEvidence,
+      sourceEvidence,
       policy,
       metrics: null,
       violations: [],
@@ -50,14 +54,18 @@ export function evaluateRegression(report, options = {}) {
   const baselineThemes = new Map((baseline.themeSignals ?? []).map((theme) => [theme.id, theme]));
   const themeChanges = [...currentThemes.values()].map((theme) => {
     const previous = baselineThemes.get(theme.id);
+    const currentComplaint = complaintThemeView(theme);
+    const baselineComplaint = complaintThemeView(previous);
     return {
       id: theme.id,
       label: theme.label,
-      count: theme.count,
-      currentShare: theme.share,
-      baselineShare: previous?.share ?? 0,
-      shareIncrease: round(theme.share - (previous?.share ?? 0), 3),
-      evidence: theme.evidence ?? []
+      intent: currentComplaint.intent,
+      count: currentComplaint.count,
+      baselineCount: baselineComplaint.count,
+      currentShare: currentComplaint.share,
+      baselineShare: baselineComplaint.share,
+      shareIncrease: round(currentComplaint.share - baselineComplaint.share, 3),
+      evidence: currentComplaint.evidence
     };
   }).sort((left, right) => right.shareIncrease - left.shareIncrease || right.count - left.count);
   const discoveredIssueChanges = (report.discoveredIssues ?? []).map((issue) => {
@@ -105,6 +113,7 @@ export function evaluateRegression(report, options = {}) {
     });
   }
   for (const theme of themeChanges) {
+    if (theme.intent === "request") continue;
     if (theme.count < policy.minThemeReviews || theme.shareIncrease <= policy.maxThemeShareIncrease) continue;
     violations.push({
       id: `theme-${theme.id}`,
@@ -141,6 +150,7 @@ export function evaluateRegression(report, options = {}) {
     currentVersion: current.version,
     baselineVersion: baseline.version,
     versionEvidence,
+    sourceEvidence,
     policy,
     metrics: {
       current: pickVersionMetrics(current),
@@ -216,12 +226,34 @@ function pickVersionMetrics(version) {
   };
 }
 
+function complaintThemeView(theme) {
+  if (!theme) return { intent: "problem", count: 0, share: 0, evidence: [] };
+  const hasComplaintMetrics = Number.isFinite(theme.complaintCount) && Number.isFinite(theme.complaintShare);
+  return {
+    intent: theme.intent ?? "problem",
+    count: hasComplaintMetrics ? theme.complaintCount : theme.count ?? 0,
+    share: hasComplaintMetrics ? theme.complaintShare : theme.share ?? 0,
+    evidence: hasComplaintMetrics ? theme.complaintEvidence ?? [] : theme.evidence ?? []
+  };
+}
+
 function buildVersionEvidence(current, baseline, requiredPerVersion, ready) {
   return {
     ready,
     requiredPerVersion,
     current: versionSample(current, requiredPerVersion),
     baseline: versionSample(baseline, requiredPerVersion)
+  };
+}
+
+function buildSourceEvidence(report) {
+  const dataset = report.provenance?.datasets?.find((item) => item.role === "primary") ?? report.provenance?.datasets?.[0];
+  const metadata = dataset?.metadata ?? {};
+  const partial = metadata.partialResults === true;
+  return {
+    ready: !partial,
+    connector: metadata.connector ?? dataset?.connector ?? report.source?.store ?? null,
+    reason: partial ? metadata.paginationStopReason ?? "partial-results" : null
   };
 }
 

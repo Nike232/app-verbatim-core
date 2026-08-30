@@ -68,22 +68,67 @@ test("falls back to the public App Store page when the RSS feed is empty", async
     canonicalUrl: "https://apps.apple.com/us/app/id123"
   }, { country: "US", limit: 10, fetch });
 
-  assert.equal(rssRequests, 2);
+  assert.equal(rssRequests, 3);
   assert.equal(result.reviews.length, 1);
   assert.deepEqual(
     {
       fallbackUsed: result.metadata.fallbackUsed,
       endpoint: result.metadata.publicEndpoint,
       connectorVersion: result.metadata.connectorVersion,
-      versionDataAvailable: result.metadata.versionDataAvailable
+      versionDataAvailable: result.metadata.versionDataAvailable,
+      partialResults: result.metadata.partialResults
     },
     {
       fallbackUsed: true,
       endpoint: "App Store public reviews page",
-      connectorVersion: "2",
-      versionDataAvailable: false
+      connectorVersion: "3",
+      versionDataAvailable: false,
+      partialResults: true
     }
   );
+});
+
+test("retries a transient empty Apple RSS page after the first page", async () => {
+  const requests = new Map();
+  const fetch = async (url) => {
+    if (url.includes("/lookup?")) return Response.json({ results: [{ trackName: "Example", artistName: "Example Inc." }] });
+    const page = Number(url.match(/page=(\d+)/)?.[1]);
+    requests.set(page, (requests.get(page) ?? 0) + 1);
+    if (page === 2 && requests.get(page) === 1) return Response.json({ feed: { entry: [] } });
+    return Response.json({ feed: { entry: Array.from({ length: 50 }, (_, index) => appleEntry(`${page}-${index}`)) } });
+  };
+
+  const result = await fetchAppleReviews({
+    store: "apple-app-store",
+    appId: "123",
+    canonicalUrl: "https://apps.apple.com/us/app/id123"
+  }, { country: "US", limit: 100, fetch });
+
+  assert.equal(result.reviews.length, 100);
+  assert.equal(result.metadata.pagesFetched, 2);
+  assert.equal(result.metadata.paginationComplete, true);
+  assert.equal(result.metadata.partialResults, false);
+  assert.equal(requests.get(1), 1);
+  assert.equal(requests.get(2), 2);
+});
+
+test("marks a persistently empty later Apple RSS page as partial", async () => {
+  const fetch = async (url) => {
+    if (url.includes("/lookup?")) return Response.json({ results: [{ trackName: "Example", artistName: "Example Inc." }] });
+    const page = Number(url.match(/page=(\d+)/)?.[1]);
+    return Response.json({ feed: { entry: page === 1 ? Array.from({ length: 50 }, (_, index) => appleEntry(`1-${index}`)) : [] } });
+  };
+
+  const result = await fetchAppleReviews({
+    store: "apple-app-store",
+    appId: "123",
+    canonicalUrl: "https://apps.apple.com/us/app/id123"
+  }, { country: "US", limit: 100, fetch });
+
+  assert.equal(result.reviews.length, 50);
+  assert.equal(result.metadata.paginationComplete, false);
+  assert.equal(result.metadata.paginationStopReason, "empty-page");
+  assert.equal(result.metadata.partialResults, true);
 });
 
 test("normalizes a Google Play review fixture including developer reply", () => {
@@ -103,3 +148,15 @@ test("normalizes a Google Play review fixture including developer reply", () => 
   assert.equal(review.helpfulCount, 9);
   assert.equal(review.reply.body, "We are investigating.");
 });
+
+function appleEntry(id) {
+  return {
+    id: { label: id },
+    title: { label: "Review" },
+    content: { label: `Review ${id}` },
+    "im:rating": { label: "4" },
+    "im:version": { label: "2.0.0" },
+    author: { name: { label: "Tester" } },
+    updated: { label: "2026-08-30T10:00:00.000Z" }
+  };
+}

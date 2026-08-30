@@ -6,12 +6,13 @@ import { ConnectorError } from "./errors.js";
 const MAX_RSS_PAGES = 10;
 const PAGE_SIZE = 50;
 const APP_STORE_PAGE_REVIEW_LIMIT = 10;
+const EMPTY_PAGE_ATTEMPTS = 3;
 const USER_AGENT = `AppVerbatim/${VERSION} (+https://github.com/Nike232/app-verbatim-core)`;
 
 export const appleConnector = defineConnector({
   id: "apple-app-store",
   name: "Apple App Store public reviews",
-  version: "2",
+  version: "3",
   supports: (source) => source?.store === "apple-app-store",
   fetch: fetchAppleReviews
 });
@@ -24,18 +25,32 @@ export async function fetchAppleReviews(source, options = {}) {
   let pagesFetched = 0;
   let publicEndpoint = "iTunes Customer Reviews RSS";
   let fallbackUsed = false;
+  let paginationComplete = false;
+  let paginationStopReason = null;
 
   for (let page = 1; page <= Math.min(MAX_RSS_PAGES, Math.ceil(limit / PAGE_SIZE)); page += 1) {
     const url = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${source.appId}/sortby=mostrecent/json`;
-    const entries = await fetchReviewEntries(url, options, page === 1 ? 2 : 1);
-    if (!entries.length) break;
+    const entries = await fetchReviewEntries(url, options, EMPTY_PAGE_ATTEMPTS);
+    if (!entries.length) {
+      paginationStopReason = reviews.length ? "empty-page" : "empty-feed";
+      break;
+    }
     pagesFetched += 1;
     for (const entry of entries) {
       if (!entry["im:rating"]?.label || !entry.content?.label) continue;
       reviews.push(normalizeAppleEntry(entry, source, country));
       if (reviews.length >= limit) break;
     }
-    if (reviews.length >= limit || entries.length < PAGE_SIZE) break;
+    if (reviews.length >= limit) {
+      paginationComplete = true;
+      paginationStopReason = "requested-limit";
+      break;
+    }
+    if (entries.length < PAGE_SIZE) {
+      paginationComplete = true;
+      paginationStopReason = "end-of-feed";
+      break;
+    }
   }
 
   if (!reviews.length) {
@@ -43,6 +58,7 @@ export async function fetchAppleReviews(source, options = {}) {
     pagesFetched = 1;
     publicEndpoint = "App Store public reviews page";
     fallbackUsed = true;
+    paginationStopReason = "public-page-fallback";
   }
 
   return {
@@ -62,6 +78,9 @@ export async function fetchAppleReviews(source, options = {}) {
       pagesFetched,
       publicEndpoint,
       fallbackUsed,
+      paginationComplete,
+      paginationStopReason,
+      partialResults: fallbackUsed || !paginationComplete,
       requestedLimit: limit,
       returnedReviews: reviews.length,
       versionDataAvailable: reviews.some((review) => Boolean(review.appVersion))
