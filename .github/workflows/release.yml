@@ -30,3 +30,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PACKAGE_FILE: ${{ steps.pack.outputs.file }}
         run: gh release create "${GITHUB_REF_NAME}" "$PACKAGE_FILE" "$PACKAGE_FILE.sha256" --generate-notes --verify-tag
+      - name: Advance moving v0 tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v0" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/v0" -f sha="${GITHUB_SHA}" -F force=true >/dev/null
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" -f ref="refs/tags/v0" -f sha="${GITHUB_SHA}" >/dev/null
+          fi

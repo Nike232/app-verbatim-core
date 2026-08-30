@@ -71,4 +71,4 @@ The result still reports `fail`, writes evidence and can maintain the deduplicat
       ${{ steps.reviews.outputs.report-file }}
 ```
 
-Pin a full release tag such as `v0.5.0` when your security policy does not permit moving major tags.
+Pin a full release tag such as `v0.5.1` when your security policy does not permit moving major tags.

@@ -1,6 +1,7 @@
 # App Verbatim
 
 [![CI](https://github.com/Nike232/app-verbatim-core/actions/workflows/ci.yml/badge.svg)](https://github.com/Nike232/app-verbatim-core/actions/workflows/ci.yml)
+[![Live connectors](https://github.com/Nike232/app-verbatim-core/actions/workflows/live-connectors.yml/badge.svg)](https://github.com/Nike232/app-verbatim-core/actions/workflows/live-connectors.yml)
 [![Release](https://img.shields.io/github/v/release/Nike232/app-verbatim-core?display_name=tag)](https://github.com/Nike232/app-verbatim-core/releases)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-1f6f50.svg)](LICENSE)
 [![Node.js 22.12+](https://img.shields.io/badge/node-%3E%3D22.12-43853d.svg)](package.json)
@@ -13,7 +14,7 @@ App Verbatim compares review evidence between app versions, detects rating and c
 
 No dashboard. No AI key. No claim without source reviews.
 
-[Live evidence report](https://nike232.github.io/app-verbatim-core/) · [简体中文](README.zh-CN.md) · [GitHub Action reference](docs/GITHUB_ACTION.md) · [Report schema](docs/REPORT_SCHEMA.md)
+[Sample evidence report](https://nike232.github.io/app-verbatim-core/) · [简体中文](README.zh-CN.md) · [GitHub Action reference](docs/GITHUB_ACTION.md) · [Report schema](docs/REPORT_SCHEMA.md)
 
 ## See the failure in 30 seconds
 
@@ -56,7 +57,7 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.0` to pin an immutable release.
+It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.1` to pin an immutable release.
 
 Want evidence before enforcing a gate? Add `--observe-only`. The workflow still reports regressions and can maintain the issue, but it stays green while you calibrate thresholds; remove the generated `fail-on-regression: false` line when the policy fits your review volume.
 

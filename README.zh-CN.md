@@ -6,7 +6,7 @@
 
 App Verbatim 会比较相邻应用版本的评论证据，识别评分下跌、低分激增和投诉主题变化，还能发现预设分类之外反复出现的新问题。全程本地、确定性运行，不需要 AI Key，每个结论都保留原始评论证据。
 
-[在线证据报告](https://nike232.github.io/app-verbatim-core/) · [English](README.md) · [GitHub Action 文档](docs/GITHUB_ACTION.md)
+[示例证据报告](https://nike232.github.io/app-verbatim-core/) · [English](README.md) · [GitHub Action 文档](docs/GITHUB_ACTION.md)
 
 ## 30 秒看到效果
 
@@ -42,7 +42,7 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-命令会验证并规范化商店 URL，然后生成 `.github/workflows/app-verbatim.yml`：每日定时检查、手动触发、最小权限和去重回归 Issue 都已配置。已有文件不会被静默覆盖；需要固定不可变版本时可加 `--action-ref v0.5.0`。
+命令会验证并规范化商店 URL，然后生成 `.github/workflows/app-verbatim.yml`：每日定时检查、手动触发、最小权限和去重回归 Issue 都已配置。已有文件不会被静默覆盖；需要固定不可变版本时可加 `--action-ref v0.5.1`。
 
 如果想先观察再阻断，可以加 `--observe-only`。工作流仍会输出回归证据并维护 Issue，但在校准阈值期间保持绿色；策略适配评论量后，删掉生成的 `fail-on-regression: false` 即可转为质量门。
 
