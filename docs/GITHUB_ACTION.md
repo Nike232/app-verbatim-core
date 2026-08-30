@@ -37,7 +37,7 @@ The result still reports `fail`, writes evidence and can maintain the deduplicat
 | `country` | `US` | Storefront country. |
 | `language` | `en` | Review language used by supported connectors. |
 | `limit` | `300` | Maximum reviews to evaluate. |
-| `min-version-reviews` | `5` | Required sample for both versions. |
+| `min-version-reviews` | `10` | Required sample for both versions. |
 | `max-rating-drop` | `0.4` | Allowed average-rating drop in stars. |
 | `max-negative-increase` | `0.15` | Allowed increase in one- and two-star share. |
 | `max-theme-increase` | `0.18` | Allowed increase in a known complaint theme. |
@@ -71,4 +71,4 @@ The result still reports `fail`, writes evidence and can maintain the deduplicat
       ${{ steps.reviews.outputs.report-file }}
 ```
 
-Pin a full release tag such as `v0.5.2` when your security policy does not permit moving major tags.
+Pin a full release tag such as `v0.5.3` when your security policy does not permit moving major tags.

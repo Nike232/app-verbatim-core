@@ -58,7 +58,7 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.2` to pin an immutable release.
+It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.3` to pin an immutable release.
 
 The recommended command starts in observe-only mode: regressions and evidence still appear, but the workflow stays green while you learn the app's normal review volume. Remove the generated `fail-on-regression: false` line when the policy fits; omit `--observe-only` only when you intentionally want enforcement from the first run.
 
@@ -151,7 +151,7 @@ Output format is inferred from `.json`, `.csv`, `.md`, or `.html`. Existing file
 Defaults are deliberately visible and configurable:
 
 ```text
-minimum reviews per version       5
+minimum reviews per version       10
 maximum average-rating drop       0.40 stars
 maximum low-rating-share increase 15 percentage points
 maximum known-theme increase      18 percentage points

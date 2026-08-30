@@ -42,7 +42,7 @@ Check options:
   --country <code>    Storefront country, for example US
   --language <code>   Review language, for example en
   --limit <number>    Reviews to evaluate (1-2000, default 300)
-  --min-version-reviews <n>  Required sample for each version (default 5)
+  --min-version-reviews <n>  Required sample for each version (default 10)
   --max-rating-drop <n>      Allowed star-rating drop (default 0.4)
   --max-negative-increase <n> Allowed low-rating share increase (default 0.15)
   --max-theme-increase <n>   Allowed complaint-theme increase (default 0.18)
@@ -138,7 +138,7 @@ async function checkCommand(values) {
       limit: integerOption(options, "limit", 300, 1, 2_000)
     });
   const result = evaluateRegression(analysis.report, {
-    minVersionReviews: integerOption(options, "min-version-reviews", 5, 1, 2_000),
+    minVersionReviews: integerOption(options, "min-version-reviews", 10, 1, 2_000),
     maxRatingDrop: decimalOption(options, "max-rating-drop", 0.4, 0, 4),
     maxNegativeShareIncrease: decimalOption(options, "max-negative-increase", 0.15, 0, 1),
     maxThemeShareIncrease: decimalOption(options, "max-theme-increase", 0.18, 0, 1),

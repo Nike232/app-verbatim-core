@@ -31,10 +31,10 @@ export function createMcpServer() {
 
   server.registerTool("check_release_regression", {
     title: "Check app release regression",
-    description: "Compare review evidence for the newest two sufficiently sampled app versions. Returns pass, fail, or insufficient-data plus the source reviews behind every violation.",
+    description: "Evaluate the actual newest app version against the newest sufficiently sampled earlier version. Returns pass, fail, or insufficient-data plus the source reviews behind every violation.",
     inputSchema: {
       ...sourceSchema,
-      minVersionReviews: z.number().int().min(1).max(2_000).default(5),
+      minVersionReviews: z.number().int().min(1).max(2_000).default(10),
       maxRatingDrop: z.number().min(0).max(4).default(0.4),
       maxNegativeIncrease: z.number().min(0).max(1).default(0.15),
       maxThemeIncrease: z.number().min(0).max(1).default(0.18),

@@ -26,7 +26,7 @@ async function main() {
       limit: numberInput("limit", 300)
     });
   const result = evaluateRegression(analysis.report, {
-    minVersionReviews: numberInput("min-version-reviews", 5),
+    minVersionReviews: numberInput("min-version-reviews", 10),
     maxRatingDrop: numberInput("max-rating-drop", 0.4),
     maxNegativeShareIncrease: numberInput("max-negative-increase", 0.15),
     maxThemeShareIncrease: numberInput("max-theme-increase", 0.18),

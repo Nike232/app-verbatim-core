@@ -1,5 +1,5 @@
 const DEFAULT_POLICY = Object.freeze({
-  minVersionReviews: 5,
+  minVersionReviews: 10,
   maxRatingDrop: 0.4,
   maxNegativeShareIncrease: 0.15,
   maxThemeShareIncrease: 0.18,
@@ -10,11 +10,18 @@ const DEFAULT_POLICY = Object.freeze({
 export function evaluateRegression(report, options = {}) {
   if (!report?.app || !Array.isArray(report.versions)) throw new TypeError("A valid App Verbatim report is required.");
   const policy = normalizePolicy(options);
-  const eligible = report.versions.filter((version) => version.count >= policy.minVersionReviews);
-  const current = eligible[0] ?? null;
-  const baseline = eligible.find((version) => version.version !== current?.version) ?? null;
+  const current = report.versions[0] ?? null;
+  const currentEligible = current && current.count >= policy.minVersionReviews;
+  const baseline = currentEligible
+    ? report.versions.slice(1).find((version) => version.version !== current.version && version.count >= policy.minVersionReviews) ?? null
+    : null;
 
-  if (!current || !baseline) {
+  if (!currentEligible || !baseline) {
+    const summary = !current
+      ? `Need at least ${policy.minVersionReviews} reviews for the newest version and one earlier baseline; found no version data.`
+      : !currentEligible
+        ? `Newest version ${current.version} has ${current.count} reviews; need at least ${policy.minVersionReviews} before comparing it.`
+        : `Need at least ${policy.minVersionReviews} reviews for an earlier baseline version.`;
     return {
       schemaVersion: 1,
       status: "insufficient-data",
@@ -26,7 +33,7 @@ export function evaluateRegression(report, options = {}) {
       policy,
       metrics: null,
       violations: [],
-      summary: `Need at least ${policy.minVersionReviews} reviews for two distinct app versions; found ${eligible.length}.`
+      summary
     };
   }
 

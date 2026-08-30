@@ -1,6 +1,6 @@
 {
   "name": "app-verbatim",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Catch App Store and Google Play review regressions in CI, with source evidence.",
   "keywords": [
     "app-store",

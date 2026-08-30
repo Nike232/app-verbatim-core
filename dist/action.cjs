@@ -837,7 +837,7 @@ function validateConnector(connector) {
 }
 
 // src/version.js
-var VERSION = "0.5.2";
+var VERSION = "0.5.3";
 
 // src/connectors/errors.js
 var ConnectorError = class extends Error {
@@ -7609,7 +7609,7 @@ function normalizeLimit(value) {
 
 // src/regression.js
 var DEFAULT_POLICY = Object.freeze({
-  minVersionReviews: 5,
+  minVersionReviews: 10,
   maxRatingDrop: 0.4,
   maxNegativeShareIncrease: 0.15,
   maxThemeShareIncrease: 0.18,
@@ -7619,10 +7619,11 @@ var DEFAULT_POLICY = Object.freeze({
 function evaluateRegression(report, options = {}) {
   if (!report?.app || !Array.isArray(report.versions)) throw new TypeError("A valid App Verbatim report is required.");
   const policy = normalizePolicy(options);
-  const eligible = report.versions.filter((version2) => version2.count >= policy.minVersionReviews);
-  const current = eligible[0] ?? null;
-  const baseline = eligible.find((version2) => version2.version !== current?.version) ?? null;
-  if (!current || !baseline) {
+  const current = report.versions[0] ?? null;
+  const currentEligible = current && current.count >= policy.minVersionReviews;
+  const baseline = currentEligible ? report.versions.slice(1).find((version2) => version2.version !== current.version && version2.count >= policy.minVersionReviews) ?? null : null;
+  if (!currentEligible || !baseline) {
+    const summary = !current ? `Need at least ${policy.minVersionReviews} reviews for the newest version and one earlier baseline; found no version data.` : !currentEligible ? `Newest version ${current.version} has ${current.count} reviews; need at least ${policy.minVersionReviews} before comparing it.` : `Need at least ${policy.minVersionReviews} reviews for an earlier baseline version.`;
     return {
       schemaVersion: 1,
       status: "insufficient-data",
@@ -7634,7 +7635,7 @@ function evaluateRegression(report, options = {}) {
       policy,
       metrics: null,
       violations: [],
-      summary: `Need at least ${policy.minVersionReviews} reviews for two distinct app versions; found ${eligible.length}.`
+      summary
     };
   }
   const ratingDrop = round3(baseline.averageRating - current.averageRating, 3);
@@ -7848,7 +7849,7 @@ async function main() {
     limit: numberInput("limit", 300)
   });
   const result = evaluateRegression(analysis.report, {
-    minVersionReviews: numberInput("min-version-reviews", 5),
+    minVersionReviews: numberInput("min-version-reviews", 10),
     maxRatingDrop: numberInput("max-rating-drop", 0.4),
     maxNegativeShareIncrease: numberInput("max-negative-increase", 0.15),
     maxThemeShareIncrease: numberInput("max-theme-increase", 0.18),

@@ -4,6 +4,16 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-08-30
+
+### Fixed
+
+- Stopped release checks from skipping an under-sampled newest version and silently comparing two older releases; the result now reports insufficient evidence for the actual newest release.
+
+### Changed
+
+- Raised the default minimum sample from 5 to 10 reviews per version after real-project validation showed that smaller samples produced noisy gates.
+
 ## [0.5.2] - 2026-08-30
 
 ### Fixed

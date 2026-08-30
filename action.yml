@@ -25,7 +25,7 @@ inputs:
   min-version-reviews:
     description: Minimum reviews required for both current and baseline versions.
     required: false
-    default: "5"
+    default: "10"
   max-rating-drop:
     description: Maximum allowed average-rating drop in stars.
     required: false

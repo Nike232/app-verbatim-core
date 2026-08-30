@@ -41,6 +41,25 @@ test("reports insufficient version evidence without guessing", () => {
   assert.equal(result.metrics, null);
 });
 
+test("does not skip an under-sampled newest release to compare older versions", () => {
+  const result = evaluateRegression({
+    app: { id: "example", name: "Example", store: "google-play" },
+    source: { store: "google-play", appId: "example" },
+    generatedAt: "2026-08-30T00:00:00.000Z",
+    versions: [
+      { version: "3.0.0", count: 4, averageRating: 1, negativeShare: 1 },
+      { version: "2.0.0", count: 30, averageRating: 2, negativeShare: 0.8 },
+      { version: "1.0.0", count: 30, averageRating: 5, negativeShare: 0 }
+    ],
+    discoveredIssues: []
+  });
+
+  assert.equal(result.status, "insufficient-data");
+  assert.equal(result.currentVersion, "3.0.0");
+  assert.equal(result.baselineVersion, null);
+  assert.match(result.summary, /Newest version 3\.0\.0 has 4 reviews/);
+});
+
 test("neutralizes mentions and HTML from untrusted review text", () => {
   const markdown = regressionToMarkdown({
     status: "fail",

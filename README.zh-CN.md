@@ -43,7 +43,7 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-命令会验证并规范化商店 URL，然后生成 `.github/workflows/app-verbatim.yml`：每日定时检查、手动触发、最小权限和去重回归 Issue 都已配置。已有文件不会被静默覆盖；需要固定不可变版本时可加 `--action-ref v0.5.2`。
+命令会验证并规范化商店 URL，然后生成 `.github/workflows/app-verbatim.yml`：每日定时检查、手动触发、最小权限和去重回归 Issue 都已配置。已有文件不会被静默覆盖；需要固定不可变版本时可加 `--action-ref v0.5.3`。
 
 推荐命令默认采用观察模式：工作流仍会输出回归证据并维护 Issue，但在了解应用的正常评论量期间保持绿色。策略适配后，删掉生成的 `fail-on-regression: false` 即可转为质量门；只有明确想从首次运行就阻断时才省略 `--observe-only`。
 
