@@ -4,6 +4,17 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-08-30
+
+### Added
+
+- Added a 20-app, aggregate-only live cohort harness for measuring release-policy decisiveness and identifying cases that need human evidence review without committing review content.
+- Added structured `versionEvidence` counts to regression results so agents and CI can tell exactly which version is under-sampled and how many reviews are missing.
+
+### Validated
+
+- Ran the default policy twice across a 20-app public Google Play cohort with identical results: 11 decidable, 9 safely inconclusive, 0 connector errors, and all 4 failures supported by actionable source evidence.
+
 ## [0.5.4] - 2026-08-30
 
 ### Fixed

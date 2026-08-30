@@ -40,7 +40,7 @@ Client configuration formats differ. Translate the same command and argument arr
 
 ### `check_release_regression`
 
-Evaluates the actual newest version against the newest earlier version that meets `minVersionReviews`. If the newest version itself is under-sampled, the tool returns `insufficient-data` instead of silently comparing older releases. The structured result contains `pass`, `fail`, or `insufficient-data`, selected versions, policy, metric changes, violations, and source-review evidence.
+Evaluates the actual newest version against the newest earlier version that meets `minVersionReviews`. If the newest version itself is under-sampled, the tool returns `insufficient-data` instead of silently comparing older releases. The structured result contains `pass`, `fail`, or `insufficient-data`, selected versions, per-version evidence counts and missing-review counts, policy, metric changes, violations, and source-review evidence.
 
 Inputs include `appUrl`, `country`, `language`, `limit`, and all release-policy thresholds. Set `demo: true` to run the offline fixture without `appUrl`.
 
