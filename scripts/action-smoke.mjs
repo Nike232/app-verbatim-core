@@ -31,7 +31,9 @@ try {
   assert.equal(JSON.parse(await readFile(resultFile, "utf8")).status, "fail");
   assert.equal(JSON.parse(await readFile(reportFile, "utf8")).app.name, "Pulse Notes");
   assert.match(await readFile(summary, "utf8"), /Regression signals/);
-  assert.match(await readFile(githubOutput, "utf8"), /status/);
+  const outputs = await readFile(githubOutput, "utf8");
+  assert.match(outputs, /status/);
+  assert.match(outputs, /release-link-level/);
   console.log("Bundled GitHub Action smoke test passed.");
 } finally {
   await rm(directory, { recursive: true, force: true });

@@ -334,6 +334,47 @@ function round(value, digits = 0) {
   return Math.round((value + Number.EPSILON) * factor) / factor;
 }
 
+// src/release-link.js
+var EXPLICIT_RULES = [
+  ["after-update-en", /\b(?:after|since|following)\s+(?:(?:the|an?)\s+)?(?:(?:latest|last|new|recent)\s+)?(?:app\s+)?(?:update|upgrade|release)\b/iu],
+  ["app-updated-en", /\b(?:ever\s+)?since\s+(?:the\s+)?(?:app|it)\s+(?:was\s+)?updated\b/iu],
+  ["named-release-en", /\b(?:this|the\s+(?:latest|last|newest)|a\s+new)\s+(?:app\s+)?(?:update(?:d)?|upgrade|release|version)\b/iu],
+  ["update-required-en", /\b(?:app|application|software|screen|store)\b[^.!?\n]{0,60}\bupdate required\b/iu],
+  ["repeated-updates-en", /\b(?:each|every|the\s+last\s+(?:two|three|\d+))\s+updates?\b/iu],
+  ["regression-en", /\b(?:major|clear|serious|product|app|release|feature|functionality|performance|usability)?\s*regression\b/iu],
+  ["release-de", /\b(?:(?:seit|nach)\s+(?:(?:dem|einem)\s+)?(?:(?:letzten|neuesten|neuen)\s+)?(?:update|upgrade)|(?:diese[rmns]?|neue[rmns]?|letzte[rmns]?|neueste[rmns]?)\s+(?:version|update))\b/iu],
+  ["release-fr", /\b(?:(?:depuis|apr[eè]s)\s+(?:la\s+)?(?:derni[eè]re|nouvelle|r[eé]cente)?\s*(?:mise [aà] jour|version)|cette\s+(?:mise [aà] jour|version))\b/iu],
+  ["release-es", /\b(?:(?:desde|despu[eé]s de)\s+(?:la\s+)?(?:[uú]ltima|nueva|reciente)?\s*(?:actualizaci[oó]n|versi[oó]n)|esta\s+(?:actualizaci[oó]n|versi[oó]n))\b/iu],
+  ["release-zh", /(?:更新|升级)(?:后|以后|之后)|(?:这个|此|新|最新)(?:版本|更新)|自从(?:更新|升级)/u],
+  ["release-ja", /(?:アップデート|更新)(?:後|してから|以降)|(?:この|新しい|最新の)(?:バージョン|アップデート)/u]
+];
+var CHANGE_RULES = [
+  ["used-to-en", /\bused\s+to\b/iu],
+  ["no-longer-en", /\b(?:can|could)\s+no\s+longer\b|\bno\s+longer\s+(?:works?|opens?|loads?|syncs?|sends?|receives?|notifies?|allows?|supports?|connects?|starts?|launches?|signs?|logs?)\b|\b(?:won['’]?t|can['’]?t|cannot|doesn['’]?t|don['’]?t)\s+(?:open|load|sync|send|receive|notify|access|connect|start|launch|sign\s*in|log\s*in|work)\b[^.!?\n]{0,60}\banymore\b/iu],
+  ["sudden-change-en", /\bsuddenly\b/iu],
+  ["recent-change-en", /\brecently\b/iu],
+  ["worsening-en", /\b(?:getting|got|became|becoming|keeps?\s+getting)\s+(?:much\s+|even\s+)?worse\b/iu],
+  ["changed-behavior-en", /\b(?:behavior|behaviour|interface|layout|design|navigation|notifications?|sync|autofill)\b[^.!?\n]{0,40}\bchanged\b/iu],
+  ["change-de", /\b(?:pl[oö]tzlich|nicht mehr|fr[uü]her|inzwischen)\b/iu],
+  ["change-fr", /\b(?:soudainement|r[eé]cemment|ne\b[^.!?\n]{0,60}\bplus|avant\b[^.!?\n]{0,80}\bmaintenant)\b/iu],
+  ["change-es", /\b(?:de repente|recientemente|ya no|antes\b[^.!?\n]{0,80}\bahora)\b/iu],
+  ["change-zh", /(?:突然|最近|不再|以前.{0,40}现在|越来越(?:差|慢|卡))/u],
+  ["change-ja", /(?:突然|以前.{0,40}(?:今|現在)|できなくな|使えなくな|最近)/u]
+];
+function classifyReleaseLink(review) {
+  const text = `${review?.title ?? ""} ${review?.body ?? review?.text ?? ""}`.replace(/\s+/g, " ").trim();
+  const explicitHits = matchingRuleIds(text, EXPLICIT_RULES);
+  const changeHits = matchingRuleIds(text, CHANGE_RULES);
+  return {
+    kind: explicitHits.length ? "explicit" : changeHits.length ? "change" : "none",
+    explicitHits,
+    changeHits
+  };
+}
+function matchingRuleIds(text, rules) {
+  return rules.filter(([, pattern]) => pattern.test(text)).map(([id]) => id);
+}
+
 // src/analysis.js
 var DAY_MS2 = 864e5;
 var THEME_RULES = [
@@ -658,7 +699,8 @@ function buildReport({ reviews: reviews2, app: app2, source, generatedAt = (/* @
       recentWindowDays: 30,
       classifier: "deterministic-keyword-v2",
       discovery: "deterministic-phrase-mining-v2",
-      caveat: "Public store reviews are a sample; findings represent only the reviews retrieved in this run."
+      releaseLink: "deterministic-release-link-v1",
+      caveat: "Public store reviews are a sample. Store version metadata shows correlation; explicit update or change language strengthens a release link but does not prove causation."
     }
   };
 }
@@ -781,10 +823,31 @@ function aggregateVersions2(reviews2) {
       averageRating: round2(mean2(items.map((item) => item.rating)), 2),
       negativeShare: round2(items.filter((item) => item.rating <= 2).length / items.length, 3),
       lastSeenAt: sorted[0].createdAt,
+      releaseLinkEvidence: aggregateReleaseLinkEvidence(items),
       themeSignals,
       evidence: sorted.filter((item) => item.rating <= 2).slice(0, 3).map(evidenceRef2)
     };
   }).sort((a, b) => compareVersionIdentifiers(b.version, a.version) || Date.parse(b.lastSeenAt) - Date.parse(a.lastSeenAt)).slice(0, 12);
+}
+function aggregateReleaseLinkEvidence(reviews2) {
+  const lowRated = reviews2.filter((review) => review.rating <= 3).map((review) => ({
+    review,
+    link: classifyReleaseLink(review)
+  }));
+  const explicit = lowRated.filter(({ link }) => link.kind === "explicit");
+  const change = lowRated.filter(({ link }) => link.kind === "change");
+  const linked = [...explicit, ...change];
+  const level = explicit.length >= 2 || explicit.length >= 1 && linked.length >= 2 ? "supported" : linked.length ? "limited" : "none";
+  const evidence = linked.sort((left, right) => (left.link.kind === "explicit" ? -1 : 1) - (right.link.kind === "explicit" ? -1 : 1) || evidenceScore2(right.review) - evidenceScore2(left.review)).slice(0, 4).map(({ review, link }) => ({ ...evidenceRef2(review), releaseLink: link }));
+  return {
+    level,
+    lowRatingReviewCount: lowRated.length,
+    explicitCount: explicit.length,
+    changeCount: change.length,
+    linkedCount: linked.length,
+    linkedShare: lowRated.length ? round2(linked.length / lowRated.length, 3) : 0,
+    evidence
+  };
 }
 function compareVersionIdentifiers(left, right) {
   const a = String(left).match(/\d+/g)?.map(Number);
@@ -995,7 +1058,7 @@ function validateConnector(connector) {
 }
 
 // src/version.js
-var VERSION = "0.5.7";
+var VERSION = "0.5.8";
 
 // src/connectors/errors.js
 var ConnectorError = class extends Error {
@@ -7802,6 +7865,7 @@ function evaluateRegression(report, options = {}) {
   const baseline = currentEligible ? report.versions.slice(1).find((version2) => version2.version !== current.version && version2.count >= policy.minVersionReviews) ?? null : null;
   const versionEvidence = buildVersionEvidence(current, baseline ?? baselineCandidate, policy.minVersionReviews, Boolean(currentEligible && baseline));
   const sourceEvidence = buildSourceEvidence(report);
+  const releaseLinkEvidence = buildReleaseLinkEvidence(current);
   if (!sourceEvidence.ready || !currentEligible || !baseline) {
     const summary = !sourceEvidence.ready ? `Public review source returned a partial sample (${sourceEvidence.reason}); release comparison is unsafe.` : !current ? `Need at least ${policy.minVersionReviews} reviews for the newest version and one earlier baseline; found no version data.` : !currentEligible ? `Newest version ${current.version} has ${reviewCount(current.count)}; need at least ${policy.minVersionReviews} before comparing it.` : baselineCandidate ? `Earlier version ${baselineCandidate.version} has ${reviewCount(baselineCandidate.count)}; need at least ${policy.minVersionReviews} for a baseline.` : `Need an earlier baseline version with at least ${policy.minVersionReviews} reviews.`;
     return {
@@ -7814,6 +7878,7 @@ function evaluateRegression(report, options = {}) {
       baselineVersion: baseline?.version ?? null,
       versionEvidence,
       sourceEvidence,
+      releaseLinkEvidence,
       policy,
       metrics: null,
       violations: [],
@@ -7921,6 +7986,7 @@ function evaluateRegression(report, options = {}) {
     baselineVersion: baseline.version,
     versionEvidence,
     sourceEvidence,
+    releaseLinkEvidence,
     policy,
     metrics: {
       current: pickVersionMetrics(current),
@@ -7951,6 +8017,15 @@ function regressionToMarkdown(result) {
       "| --- | ---: | ---: | ---: | ---: |",
       `| Average rating | ${result.metrics.current.averageRating} | ${result.metrics.baseline.averageRating} | ${signed(result.metrics.ratingDrop * -1, 2)} | drop \u2264 ${result.policy.maxRatingDrop} |`,
       `| One- and two-star share | ${percent(result.metrics.current.negativeShare)} | ${percent(result.metrics.baseline.negativeShare)} | ${signedPercent(result.metrics.negativeShareIncrease)} | increase \u2264 ${percent(result.policy.maxNegativeShareIncrease)} |`,
+      ""
+    );
+  }
+  if (result.releaseLinkEvidence?.available) {
+    const link = result.releaseLinkEvidence;
+    lines.push(
+      `**Release-link evidence:** ${releaseLinkLabel(link.level)} \xB7 ${link.linkedCount} of ${link.lowRatingReviewCount} one- to three-star reviews describe an update/version link or a before-and-after change (${link.explicitCount} explicit, ${link.changeCount} temporal).`,
+      "",
+      "<sub>This diagnostic changes confidence in release causality, not the rating-based gate. Store version attribution is correlation, not proof that a release caused a review.</sub>",
       ""
     );
   }
@@ -8017,6 +8092,19 @@ function buildSourceEvidence(report) {
     reason: partial2 ? metadata.paginationStopReason ?? "partial-results" : null
   };
 }
+function buildReleaseLinkEvidence(version2) {
+  if (version2?.releaseLinkEvidence) return { available: true, ...version2.releaseLinkEvidence };
+  return {
+    available: false,
+    level: "unknown",
+    lowRatingReviewCount: 0,
+    explicitCount: 0,
+    changeCount: 0,
+    linkedCount: 0,
+    linkedShare: 0,
+    evidence: []
+  };
+}
 function versionSample(version2, required3) {
   const count = version2?.count ?? 0;
   return {
@@ -8055,6 +8143,9 @@ function signedPercent(value) {
 }
 function ratingLabel(value) {
   return `${value} ${Number(value) === 1 ? "star" : "stars"}`;
+}
+function releaseLinkLabel(value) {
+  return value === "supported" ? "SUPPORTED" : value === "limited" ? "LIMITED" : "NONE FOUND";
 }
 function escapeMarkdown(value) {
   return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("@", "@\u200B").replaceAll("|", "\\|").replace(/([*_`[\]])/g, "\\$1");
@@ -8097,6 +8188,7 @@ async function main() {
   await setOutput("status", result.status);
   await setOutput("current-version", result.currentVersion ?? "");
   await setOutput("baseline-version", result.baselineVersion ?? "");
+  await setOutput("release-link-level", result.releaseLinkEvidence?.level === "unknown" ? "" : result.releaseLinkEvidence?.level ?? "");
   await setOutput("violations", String(result.violations.length));
   await setOutput("result-file", outputPath);
   await setOutput("report-file", reportPath);

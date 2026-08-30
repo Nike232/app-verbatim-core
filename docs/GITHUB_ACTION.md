@@ -1,6 +1,6 @@
 # GitHub Action reference
 
-App Verbatim's action evaluates the actual newest app version against the newest sufficiently sampled earlier baseline. It refuses to decide when version evidence is too small or the public connector reports a partial source sample. It writes a Markdown job summary and two JSON files, and can fail the job or maintain one deduplicated regression issue.
+App Verbatim's action evaluates the actual newest app version against the newest sufficiently sampled earlier baseline. It refuses to decide when version evidence is too small or the public connector reports a partial source sample. Its summary separately labels release-link evidence as supported, limited, or absent without changing the rating-based gate. It writes a Markdown job summary and two JSON files, and can fail the job or maintain one deduplicated regression issue.
 
 ## Minimal workflow
 
@@ -52,7 +52,7 @@ The result still reports `fail`, writes evidence and can maintain the deduplicat
 
 ## Outputs
 
-`status`, `current-version`, `baseline-version`, `violations`, `result-file`, `report-file`, and `issue-url` are available to later steps.
+`status`, `current-version`, `baseline-version`, `release-link-level`, `violations`, `result-file`, `report-file`, and `issue-url` are available to later steps. `release-link-level` is `supported`, `limited`, or `none`; it is empty only when an older report producer did not supply the diagnostic.
 
 ## Upload the evidence
 
@@ -71,4 +71,4 @@ The result still reports `fail`, writes evidence and can maintain the deduplicat
       ${{ steps.reviews.outputs.report-file }}
 ```
 
-Pin a full release tag such as `v0.5.6` when your security policy does not permit moving major tags.
+Pin a full release tag such as `v0.5.8` when your security policy does not permit moving major tags.

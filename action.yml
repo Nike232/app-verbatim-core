@@ -81,6 +81,8 @@ outputs:
     description: Actual newest version, including when its evidence is insufficient.
   baseline-version:
     description: Previous version used as the baseline.
+  release-link-level:
+    description: supported, limited, or none for the current version's one- to three-star review text.
   violations:
     description: Number of policy violations.
   result-file:

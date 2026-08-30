@@ -1,5 +1,6 @@
 import {
   analyze,
+  classifyReleaseLink,
   ConnectorRegistry,
   defineConnector,
   evaluateRegression,
@@ -37,6 +38,8 @@ const result = await analyze({ store: "typed-example", appId: "app" }, { registr
 const html: string = exportReport(result.report, "html");
 const count: number = result.report.sample.total;
 const check: RegressionResult = evaluateRegression(result.report, { maxRatingDrop: 0.25 });
+const releaseKind: string = classifyReleaseLink({ body: "Broken after the update." }).kind;
 void html;
 void count;
 void check;
+void releaseKind;

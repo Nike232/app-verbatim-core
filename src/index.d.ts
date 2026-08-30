@@ -94,6 +94,28 @@ export interface ThemeMatch {
   confidence: number;
 }
 
+export type ReleaseLinkKind = "explicit" | "change" | "none";
+
+export interface ReleaseLinkMatch {
+  kind: ReleaseLinkKind;
+  explicitHits: string[];
+  changeHits: string[];
+}
+
+export interface ReleaseLinkEvidence extends Evidence {
+  releaseLink: ReleaseLinkMatch;
+}
+
+export interface VersionReleaseLinkEvidence {
+  level: "none" | "limited" | "supported";
+  lowRatingReviewCount: number;
+  explicitCount: number;
+  changeCount: number;
+  linkedCount: number;
+  linkedShare: number;
+  evidence: ReleaseLinkEvidence[];
+}
+
 export interface ThemeSummary {
   id: string;
   label: string;
@@ -138,6 +160,7 @@ export interface VersionSummary {
   averageRating: number;
   negativeShare: number;
   lastSeenAt: string;
+  releaseLinkEvidence?: VersionReleaseLinkEvidence;
   themeSignals: VersionThemeSignal[];
   evidence: Evidence[];
 }
@@ -202,6 +225,11 @@ export interface SourceEvidenceStatus {
   reason: string | null;
 }
 
+export interface RegressionReleaseLinkEvidence extends Omit<VersionReleaseLinkEvidence, "level"> {
+  available: boolean;
+  level: VersionReleaseLinkEvidence["level"] | "unknown";
+}
+
 export interface RegressionResult {
   schemaVersion: number;
   status: "pass" | "fail" | "insufficient-data";
@@ -212,6 +240,7 @@ export interface RegressionResult {
   baselineVersion: string | null;
   versionEvidence: VersionEvidenceStatus;
   sourceEvidence: SourceEvidenceStatus;
+  releaseLinkEvidence?: RegressionReleaseLinkEvidence;
   policy: Required<RegressionPolicy>;
   metrics: Record<string, any> | null;
   violations: RegressionViolation[];
@@ -265,6 +294,7 @@ export function parseSourceRef(input: string): SourceRef;
 export function normalizeReview(review: Partial<Review> & Pick<Review, "source" | "appId" | "reviewId" | "body" | "rating" | "createdAt">): Review;
 export function deduplicateReviews(reviews: Review[]): Review[];
 export function classifyReview(review: Pick<Review, "title" | "body">): ThemeMatch[];
+export function classifyReleaseLink(review: Partial<Pick<Review, "title" | "body">> & { text?: string }): ReleaseLinkMatch;
 export function discoverIssues(reviews: Review[], options?: { totalReviews?: number; anchor?: number; limit?: number }): Array<Record<string, any>>;
 export function buildReport(input: { reviews: Review[]; app: AppMetadata; source: SourceRef; generatedAt?: string; aiSummary?: unknown }): Report;
 export function buildComparison(primary: Report, competitor: Report): Record<string, any>;
