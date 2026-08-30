@@ -1,6 +1,6 @@
 # GitHub Action reference
 
-App Verbatim's action evaluates the newest two app versions with enough review evidence. It writes a Markdown job summary and two JSON files, and can fail the job or maintain one deduplicated regression issue.
+App Verbatim's action evaluates the actual newest app version against the newest sufficiently sampled earlier baseline. It writes a Markdown job summary and two JSON files, and can fail the job or maintain one deduplicated regression issue.
 
 ## Minimal workflow
 
@@ -46,7 +46,7 @@ The result still reports `fail`, writes evidence and can maintain the deduplicat
 | `create-issue` | `false` | Create or update one issue when the result fails. |
 | `github-token` | — | Token used for issue creation. |
 | `fail-on-regression` | `true` | Return a failing Action status on regression. |
-| `fail-on-insufficient-data` | `false` | Fail when two versions lack enough evidence. |
+| `fail-on-insufficient-data` | `false` | Fail when the actual newest version or an earlier baseline lacks enough evidence. |
 | `output` | `app-verbatim-regression.json` | Regression-result path. |
 | `report-output` | `app-verbatim-report.json` | Full evidence-report path. |
 
@@ -71,4 +71,4 @@ The result still reports `fail`, writes evidence and can maintain the deduplicat
       ${{ steps.reviews.outputs.report-file }}
 ```
 
-Pin a full release tag such as `v0.5.4` when your security policy does not permit moving major tags.
+Pin a full release tag such as `v0.5.5` when your security policy does not permit moving major tags.

@@ -12,6 +12,8 @@ test("fails a release check when the newest version regresses", () => {
   assert.equal(result.status, "fail");
   assert.equal(result.currentVersion, "4.8.0");
   assert.equal(result.baselineVersion, "4.7.2");
+  assert.equal(result.versionEvidence.ready, true);
+  assert.equal(result.versionEvidence.current.missingReviews, 0);
   assert.ok(result.violations.some((item) => item.id === "rating-drop"));
   assert.ok(result.violations.some((item) => item.id.startsWith("discovered-")));
   assert.ok(result.violations.every((item) => item.evidence.length > 0));
@@ -39,6 +41,8 @@ test("reports insufficient version evidence without guessing", () => {
   const result = evaluateRegression(report);
   assert.equal(result.status, "insufficient-data");
   assert.equal(result.metrics, null);
+  assert.equal(result.versionEvidence.ready, false);
+  assert.ok(result.versionEvidence.current.missingReviews > 0);
 });
 
 test("does not skip an under-sampled newest release to compare older versions", () => {
@@ -57,7 +61,31 @@ test("does not skip an under-sampled newest release to compare older versions", 
   assert.equal(result.status, "insufficient-data");
   assert.equal(result.currentVersion, "3.0.0");
   assert.equal(result.baselineVersion, null);
+  assert.deepEqual(result.versionEvidence, {
+    ready: false,
+    requiredPerVersion: 10,
+    current: { version: "3.0.0", count: 4, missingReviews: 6 },
+    baseline: { version: "2.0.0", count: 30, missingReviews: 0 }
+  });
   assert.match(result.summary, /Newest version 3\.0\.0 has 4 reviews/);
+});
+
+test("reports the closest under-sampled baseline in structured evidence", () => {
+  const result = evaluateRegression({
+    app: { id: "example", name: "Example", store: "google-play" },
+    source: { store: "google-play", appId: "example" },
+    generatedAt: "2026-08-30T00:00:00.000Z",
+    versions: [
+      { version: "3.0.0", count: 20, averageRating: 4, negativeShare: 0.1 },
+      { version: "2.0.0", count: 1, averageRating: 1, negativeShare: 1 }
+    ],
+    discoveredIssues: []
+  });
+
+  assert.equal(result.status, "insufficient-data");
+  assert.equal(result.baselineVersion, null);
+  assert.deepEqual(result.versionEvidence.baseline, { version: "2.0.0", count: 1, missingReviews: 9 });
+  assert.match(result.summary, /Earlier version 2\.0\.0 has 1 review;/);
 });
 
 test("neutralizes mentions and HTML from untrusted review text", () => {

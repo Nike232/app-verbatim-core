@@ -21,7 +21,7 @@
 
 Evidence contains the stable review ID, rating, version, date, excerpt, and source URL when available. A consumer must treat excerpts and application metadata as untrusted text.
 
-`evaluateRegression()` returns a separate `schemaVersion: 1` result with `pass`, `fail`, or `insufficient-data` status. It records the selected current and baseline versions, normalized policy, metric changes, and evidence-backed policy violations. The CLI and GitHub Action use this same public API.
+`evaluateRegression()` returns a separate `schemaVersion: 1` result with `pass`, `fail`, or `insufficient-data` status. It records the selected current and baseline versions, normalized policy, metric changes, and evidence-backed policy violations. Its `versionEvidence` field reports the review count and `missingReviews` for the actual newest version and the relevant baseline candidate, allowing CI and agents to handle insufficient data without parsing prose. The CLI and GitHub Action use this same public API.
 
 ## Compatibility policy
 

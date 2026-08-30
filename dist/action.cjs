@@ -837,7 +837,7 @@ function validateConnector(connector) {
 }
 
 // src/version.js
-var VERSION = "0.5.4";
+var VERSION = "0.5.5";
 
 // src/connectors/errors.js
 var ConnectorError = class extends Error {
@@ -7621,9 +7621,11 @@ function evaluateRegression(report, options = {}) {
   const policy = normalizePolicy(options);
   const current = report.versions[0] ?? null;
   const currentEligible = current && current.count >= policy.minVersionReviews;
+  const baselineCandidate = current ? report.versions.slice(1).find((version2) => version2.version !== current.version) ?? null : null;
   const baseline = currentEligible ? report.versions.slice(1).find((version2) => version2.version !== current.version && version2.count >= policy.minVersionReviews) ?? null : null;
+  const versionEvidence = buildVersionEvidence(current, baseline ?? baselineCandidate, policy.minVersionReviews, Boolean(currentEligible && baseline));
   if (!currentEligible || !baseline) {
-    const summary = !current ? `Need at least ${policy.minVersionReviews} reviews for the newest version and one earlier baseline; found no version data.` : !currentEligible ? `Newest version ${current.version} has ${current.count} reviews; need at least ${policy.minVersionReviews} before comparing it.` : `Need at least ${policy.minVersionReviews} reviews for an earlier baseline version.`;
+    const summary = !current ? `Need at least ${policy.minVersionReviews} reviews for the newest version and one earlier baseline; found no version data.` : !currentEligible ? `Newest version ${current.version} has ${reviewCount(current.count)}; need at least ${policy.minVersionReviews} before comparing it.` : baselineCandidate ? `Earlier version ${baselineCandidate.version} has ${reviewCount(baselineCandidate.count)}; need at least ${policy.minVersionReviews} for a baseline.` : `Need an earlier baseline version with at least ${policy.minVersionReviews} reviews.`;
     return {
       schemaVersion: 1,
       status: "insufficient-data",
@@ -7632,6 +7634,7 @@ function evaluateRegression(report, options = {}) {
       evaluatedAt: report.generatedAt,
       currentVersion: current?.version ?? null,
       baselineVersion: baseline?.version ?? null,
+      versionEvidence,
       policy,
       metrics: null,
       violations: [],
@@ -7732,6 +7735,7 @@ function evaluateRegression(report, options = {}) {
     evaluatedAt: report.generatedAt,
     currentVersion: current.version,
     baselineVersion: baseline.version,
+    versionEvidence,
     policy,
     metrics: {
       current: pickVersionMetrics(current),
@@ -7799,6 +7803,25 @@ function pickVersionMetrics(version2) {
     averageRating: version2.averageRating,
     negativeShare: version2.negativeShare
   };
+}
+function buildVersionEvidence(current, baseline, requiredPerVersion, ready) {
+  return {
+    ready,
+    requiredPerVersion,
+    current: versionSample(current, requiredPerVersion),
+    baseline: versionSample(baseline, requiredPerVersion)
+  };
+}
+function versionSample(version2, required3) {
+  const count = version2?.count ?? 0;
+  return {
+    version: version2?.version ?? null,
+    count,
+    missingReviews: Math.max(0, required3 - count)
+  };
+}
+function reviewCount(count) {
+  return `${count} ${count === 1 ? "review" : "reviews"}`;
 }
 function integer2(value, fallback, min, max, name) {
   if (value == null) return fallback;

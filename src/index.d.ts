@@ -143,6 +143,13 @@ export interface RegressionViolation {
   evidence: Evidence[];
 }
 
+export interface VersionEvidenceStatus {
+  ready: boolean;
+  requiredPerVersion: number;
+  current: { version: string | null; count: number; missingReviews: number };
+  baseline: { version: string | null; count: number; missingReviews: number };
+}
+
 export interface RegressionResult {
   schemaVersion: number;
   status: "pass" | "fail" | "insufficient-data";
@@ -151,6 +158,7 @@ export interface RegressionResult {
   evaluatedAt: string;
   currentVersion: string | null;
   baselineVersion: string | null;
+  versionEvidence: VersionEvidenceStatus;
   policy: Required<RegressionPolicy>;
   metrics: Record<string, any> | null;
   violations: RegressionViolation[];

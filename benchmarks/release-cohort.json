@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "description": "A diverse public Google Play cohort for manually validating release-regression behavior without committing review data.",
+  "country": "US",
+  "language": "en",
+  "limit": 300,
+  "apps": [
+    { "slug": "bitwarden", "name": "Bitwarden", "category": "security", "url": "https://play.google.com/store/apps/details?id=com.x8bit.bitwarden" },
+    { "slug": "signal", "name": "Signal", "category": "communication", "url": "https://play.google.com/store/apps/details?id=org.thoughtcrime.securesms" },
+    { "slug": "firefox", "name": "Firefox", "category": "browser", "url": "https://play.google.com/store/apps/details?id=org.mozilla.firefox" },
+    { "slug": "duckduckgo", "name": "DuckDuckGo", "category": "browser", "url": "https://play.google.com/store/apps/details?id=com.duckduckgo.mobile.android" },
+    { "slug": "nextcloud", "name": "Nextcloud", "category": "cloud", "url": "https://play.google.com/store/apps/details?id=com.nextcloud.client" },
+    { "slug": "dropbox", "name": "Dropbox", "category": "cloud", "url": "https://play.google.com/store/apps/details?id=com.dropbox.android" },
+    { "slug": "notion", "name": "Notion", "category": "productivity", "url": "https://play.google.com/store/apps/details?id=notion.id" },
+    { "slug": "todoist", "name": "Todoist", "category": "productivity", "url": "https://play.google.com/store/apps/details?id=com.todoist" },
+    { "slug": "trello", "name": "Trello", "category": "productivity", "url": "https://play.google.com/store/apps/details?id=com.trello" },
+    { "slug": "evernote", "name": "Evernote", "category": "productivity", "url": "https://play.google.com/store/apps/details?id=com.evernote" },
+    { "slug": "slack", "name": "Slack", "category": "work", "url": "https://play.google.com/store/apps/details?id=com.Slack" },
+    { "slug": "teams", "name": "Microsoft Teams", "category": "work", "url": "https://play.google.com/store/apps/details?id=com.microsoft.teams" },
+    { "slug": "discord", "name": "Discord", "category": "communication", "url": "https://play.google.com/store/apps/details?id=com.discord" },
+    { "slug": "telegram", "name": "Telegram", "category": "communication", "url": "https://play.google.com/store/apps/details?id=org.telegram.messenger" },
+    { "slug": "wikipedia", "name": "Wikipedia", "category": "reference", "url": "https://play.google.com/store/apps/details?id=org.wikipedia" },
+    { "slug": "vlc", "name": "VLC", "category": "media", "url": "https://play.google.com/store/apps/details?id=org.videolan.vlc" },
+    { "slug": "spotify", "name": "Spotify", "category": "media", "url": "https://play.google.com/store/apps/details?id=com.spotify.music" },
+    { "slug": "reddit", "name": "Reddit", "category": "social", "url": "https://play.google.com/store/apps/details?id=com.reddit.frontpage" },
+    { "slug": "duolingo", "name": "Duolingo", "category": "education", "url": "https://play.google.com/store/apps/details?id=com.duolingo" },
+    { "slug": "airbnb", "name": "Airbnb", "category": "travel", "url": "https://play.google.com/store/apps/details?id=com.airbnb.android" }
+  ]
+}
