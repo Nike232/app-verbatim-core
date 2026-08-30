@@ -58,7 +58,7 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.3` to pin an immutable release.
+It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.4` to pin an immutable release.
 
 The recommended command starts in observe-only mode: regressions and evidence still appear, but the workflow stays green while you learn the app's normal review volume. Remove the generated `fail-on-regression: false` line when the policy fits; omit `--observe-only` only when you intentionally want enforcement from the first run.
 
@@ -116,7 +116,7 @@ The server uses stdio, writes no local state, and requires no model-provider key
 
 | Capability | What App Verbatim does |
 | --- | --- |
-| Release regression gate | Compares the newest sufficiently sampled version with the previous version and returns a CI exit status. |
+| Release regression gate | Evaluates the actual newest version against a sufficiently sampled earlier baseline; under-sampled newest releases remain explicitly inconclusive. |
 | Evidence, not summaries | Rating drops, low-rating spikes, and theme changes retain representative source reviews. |
 | Unknown-problem discovery | Deterministic phrase mining surfaces repeated low-rating language not covered by predefined categories. |
 | Reproducible runs | Normalized datasets receive SHA-256 content hashes; the default engine is local and deterministic. |
@@ -202,6 +202,6 @@ Hosted scheduling, long-term history, team administration, private owner APIs, m
 
 ## Contributing and security
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Report vulnerabilities through the private channel described in [SECURITY.md](SECURITY.md), not a public issue.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Usage questions belong in [GitHub Discussions](https://github.com/Nike232/app-verbatim-core/discussions); support boundaries are documented in [SUPPORT.md](SUPPORT.md). Report vulnerabilities through the private channel described in [SECURITY.md](SECURITY.md), not a public issue.
 
 GNU AGPL-3.0-or-later. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).

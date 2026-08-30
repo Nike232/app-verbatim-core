@@ -837,7 +837,7 @@ function validateConnector(connector) {
 }
 
 // src/version.js
-var VERSION = "0.5.3";
+var VERSION = "0.5.4";
 
 // src/connectors/errors.js
 var ConnectorError = class extends Error {

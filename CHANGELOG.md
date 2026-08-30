@@ -4,6 +4,18 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-08-30
+
+### Fixed
+
+- Corrected stale security-support, release-process, README, and Action-output documentation so it matches the actual newest-release behavior and version source.
+
+### Changed
+
+- Hardened GitHub workflows with immutable action SHAs, explicit timeouts and concurrency, production-dependency auditing, and one stable required quality gate.
+- Release automation now rejects tag/package/changelog version mismatches and creates a build-provenance attestation for the package artifact.
+- Added explicit support routing and code ownership for contributor, workflow, and security-sensitive changes.
+
 ## [0.5.3] - 2026-08-30
 
 ### Fixed
