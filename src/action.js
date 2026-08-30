@@ -45,6 +45,7 @@ async function main() {
   await setOutput("status", result.status);
   await setOutput("current-version", result.currentVersion ?? "");
   await setOutput("baseline-version", result.baselineVersion ?? "");
+  await setOutput("release-link-level", result.releaseLinkEvidence?.level === "unknown" ? "" : result.releaseLinkEvidence?.level ?? "");
   await setOutput("violations", String(result.violations.length));
   await setOutput("result-file", outputPath);
   await setOutput("report-file", reportPath);

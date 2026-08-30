@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildReport, deduplicateReviews } from "../src/index.js";
+import { buildReport, classifyReleaseLink, deduplicateReviews } from "../src/index.js";
 
 const base = {
   source: "google-play",
@@ -120,4 +120,36 @@ test("orders numeric versions instead of treating a late old-version review as c
     app: { id: base.appId, name: "Example", store: "google-play", url: "https://example.com" }
   });
   assert.deepEqual(report.versions.map((item) => item.version), ["2.1.0", "1.9.9"]);
+});
+
+test("separates explicit release links from broader temporal changes", () => {
+  assert.equal(classifyReleaseLink({ body: "The app crashes after the latest update." }).kind, "explicit");
+  assert.equal(classifyReleaseLink({ body: "I can no longer sign in." }).kind, "change");
+  assert.equal(classifyReleaseLink({ body: "The mobile version is slow." }).kind, "none");
+  assert.equal(classifyReleaseLink({ body: "Please update my payment method." }).kind, "none");
+});
+
+test("reports release-link coverage without excluding unlinked low ratings", () => {
+  const report = buildReport({
+    reviews: [
+      { ...base, reviewId: "explicit", body: "Crashes after the latest update.", rating: 1, appVersion: "2.0", createdAt: "2026-08-20" },
+      { ...base, reviewId: "change", body: "I can no longer sign in.", rating: 2, appVersion: "2.0", createdAt: "2026-08-19" },
+      { ...base, reviewId: "unlinked", body: "Terrible experience.", rating: 1, appVersion: "2.0", createdAt: "2026-08-18" },
+      { ...base, reviewId: "positive", body: "Works well after the latest update.", rating: 5, appVersion: "2.0", createdAt: "2026-08-17" }
+    ],
+    source: { store: "google-play" },
+    app: { id: base.appId, name: "Example", store: "google-play", url: "https://example.com" }
+  });
+
+  assert.equal(report.versions[0].count, 4);
+  assert.deepEqual(report.versions[0].releaseLinkEvidence, {
+    level: "supported",
+    lowRatingReviewCount: 3,
+    explicitCount: 1,
+    changeCount: 1,
+    linkedCount: 2,
+    linkedShare: 0.667,
+    evidence: report.versions[0].releaseLinkEvidence.evidence
+  });
+  assert.deepEqual(report.versions[0].releaseLinkEvidence.evidence.map((item) => item.releaseLink.kind), ["explicit", "change"]);
 });

@@ -27,6 +27,7 @@ export function buildCohortResult(cohortCase, analysis) {
     baselineVersion: regression.baselineVersion,
     versionEvidence: regression.versionEvidence,
     sourceEvidence: regression.sourceEvidence,
+    releaseLinkEvidence: pickReleaseLinkEvidence(regression.releaseLinkEvidence),
     currentReviews: regression.metrics?.current.count ?? analysis.report.versions[0]?.count ?? 0,
     baselineReviews: regression.metrics?.baseline.count ?? null,
     ratingDrop: regression.metrics?.ratingDrop ?? null,
@@ -62,6 +63,7 @@ export function summarizeCohort(results) {
       versionUnavailableCases: results.filter((item) => item.status !== "error" && !item.sourceHealth?.versionDataAvailable).length
     },
     currentComplaintThemeCoverage: combineThemeCoverage(results),
+    releaseLinkEvidenceLevels: countReleaseLinkLevels(results),
     violationCounts: countViolations(results)
   };
 }
@@ -201,7 +203,8 @@ function groupSummary(results, keyFor) {
   }
   return Object.fromEntries([...groups.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([key, items]) => [key, {
     ...summarizeGroup(items),
-    currentComplaintThemeCoverage: combineThemeCoverage(items)
+    currentComplaintThemeCoverage: combineThemeCoverage(items),
+    releaseLinkEvidenceLevels: countReleaseLinkLevels(items)
   }]));
 }
 
@@ -234,6 +237,27 @@ function countViolations(results) {
     for (const violation of result.violations ?? []) counts[violation.id] = (counts[violation.id] ?? 0) + 1;
   }
   return Object.fromEntries(Object.entries(counts).sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0])));
+}
+
+function countReleaseLinkLevels(results) {
+  const counts = { supported: 0, limited: 0, none: 0, unknown: 0 };
+  for (const result of results.filter((item) => item.status !== "error")) {
+    const level = result.releaseLinkEvidence?.level ?? "unknown";
+    counts[level in counts ? level : "unknown"] += 1;
+  }
+  return counts;
+}
+
+function pickReleaseLinkEvidence(value) {
+  return {
+    available: value?.available ?? false,
+    level: value?.level ?? "unknown",
+    lowRatingReviewCount: value?.lowRatingReviewCount ?? 0,
+    explicitCount: value?.explicitCount ?? 0,
+    changeCount: value?.changeCount ?? 0,
+    linkedCount: value?.linkedCount ?? 0,
+    linkedShare: value?.linkedShare ?? 0
+  };
 }
 
 function round(value) {

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { discoverIssues } from "./discovery.js";
+import { classifyReleaseLink } from "./release-link.js";
 
 const DAY_MS = 86_400_000;
 
@@ -191,7 +192,8 @@ export function buildReport({ reviews, app, source, generatedAt = new Date().toI
       recentWindowDays: 30,
       classifier: "deterministic-keyword-v2",
       discovery: "deterministic-phrase-mining-v2",
-      caveat: "Public store reviews are a sample; findings represent only the reviews retrieved in this run."
+      releaseLink: "deterministic-release-link-v1",
+      caveat: "Public store reviews are a sample. Store version metadata shows correlation; explicit update or change language strengthens a release link but does not prove causation."
     }
   };
 }
@@ -331,10 +333,39 @@ function aggregateVersions(reviews) {
       averageRating: round(mean(items.map((item) => item.rating)), 2),
       negativeShare: round(items.filter((item) => item.rating <= 2).length / items.length, 3),
       lastSeenAt: sorted[0].createdAt,
+      releaseLinkEvidence: aggregateReleaseLinkEvidence(items),
       themeSignals,
       evidence: sorted.filter((item) => item.rating <= 2).slice(0, 3).map(evidenceRef)
     };
   }).sort((a, b) => compareVersionIdentifiers(b.version, a.version) || Date.parse(b.lastSeenAt) - Date.parse(a.lastSeenAt)).slice(0, 12);
+}
+
+function aggregateReleaseLinkEvidence(reviews) {
+  const lowRated = reviews.filter((review) => review.rating <= 3).map((review) => ({
+    review,
+    link: classifyReleaseLink(review)
+  }));
+  const explicit = lowRated.filter(({ link }) => link.kind === "explicit");
+  const change = lowRated.filter(({ link }) => link.kind === "change");
+  const linked = [...explicit, ...change];
+  const level = explicit.length >= 2 || (explicit.length >= 1 && linked.length >= 2)
+    ? "supported"
+    : linked.length
+      ? "limited"
+      : "none";
+  const evidence = linked
+    .sort((left, right) => (left.link.kind === "explicit" ? -1 : 1) - (right.link.kind === "explicit" ? -1 : 1) || evidenceScore(right.review) - evidenceScore(left.review))
+    .slice(0, 4)
+    .map(({ review, link }) => ({ ...evidenceRef(review), releaseLink: link }));
+  return {
+    level,
+    lowRatingReviewCount: lowRated.length,
+    explicitCount: explicit.length,
+    changeCount: change.length,
+    linkedCount: linked.length,
+    linkedShare: lowRated.length ? round(linked.length / lowRated.length, 3) : 0,
+    evidence
+  };
 }
 
 function compareVersionIdentifiers(left, right) {

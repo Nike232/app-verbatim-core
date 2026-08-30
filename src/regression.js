@@ -20,6 +20,7 @@ export function evaluateRegression(report, options = {}) {
     : null;
   const versionEvidence = buildVersionEvidence(current, baseline ?? baselineCandidate, policy.minVersionReviews, Boolean(currentEligible && baseline));
   const sourceEvidence = buildSourceEvidence(report);
+  const releaseLinkEvidence = buildReleaseLinkEvidence(current);
 
   if (!sourceEvidence.ready || !currentEligible || !baseline) {
     const summary = !sourceEvidence.ready
@@ -41,6 +42,7 @@ export function evaluateRegression(report, options = {}) {
       baselineVersion: baseline?.version ?? null,
       versionEvidence,
       sourceEvidence,
+      releaseLinkEvidence,
       policy,
       metrics: null,
       violations: [],
@@ -151,6 +153,7 @@ export function evaluateRegression(report, options = {}) {
     baselineVersion: baseline.version,
     versionEvidence,
     sourceEvidence,
+    releaseLinkEvidence,
     policy,
     metrics: {
       current: pickVersionMetrics(current),
@@ -184,6 +187,15 @@ export function regressionToMarkdown(result) {
       "| --- | ---: | ---: | ---: | ---: |",
       `| Average rating | ${result.metrics.current.averageRating} | ${result.metrics.baseline.averageRating} | ${signed(result.metrics.ratingDrop * -1, 2)} | drop ≤ ${result.policy.maxRatingDrop} |`,
       `| One- and two-star share | ${percent(result.metrics.current.negativeShare)} | ${percent(result.metrics.baseline.negativeShare)} | ${signedPercent(result.metrics.negativeShareIncrease)} | increase ≤ ${percent(result.policy.maxNegativeShareIncrease)} |`,
+      ""
+    );
+  }
+  if (result.releaseLinkEvidence?.available) {
+    const link = result.releaseLinkEvidence;
+    lines.push(
+      `**Release-link evidence:** ${releaseLinkLabel(link.level)} · ${link.linkedCount} of ${link.lowRatingReviewCount} one- to three-star reviews describe an update/version link or a before-and-after change (${link.explicitCount} explicit, ${link.changeCount} temporal).`,
+      "",
+      "<sub>This diagnostic changes confidence in release causality, not the rating-based gate. Store version attribution is correlation, not proof that a release caused a review.</sub>",
       ""
     );
   }
@@ -257,6 +269,20 @@ function buildSourceEvidence(report) {
   };
 }
 
+function buildReleaseLinkEvidence(version) {
+  if (version?.releaseLinkEvidence) return { available: true, ...version.releaseLinkEvidence };
+  return {
+    available: false,
+    level: "unknown",
+    lowRatingReviewCount: 0,
+    explicitCount: 0,
+    changeCount: 0,
+    linkedCount: 0,
+    linkedShare: 0,
+    evidence: []
+  };
+}
+
 function versionSample(version, required) {
   const count = version?.count ?? 0;
   return {
@@ -303,6 +329,10 @@ function signedPercent(value) {
 
 function ratingLabel(value) {
   return `${value} ${Number(value) === 1 ? "star" : "stars"}`;
+}
+
+function releaseLinkLabel(value) {
+  return value === "supported" ? "SUPPORTED" : value === "limited" ? "LIMITED" : "NONE FOUND";
 }
 
 function escapeMarkdown(value) {

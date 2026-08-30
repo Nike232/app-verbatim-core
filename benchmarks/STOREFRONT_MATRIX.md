@@ -70,3 +70,33 @@ Two consecutive full matrix runs then produced identical results:
 The same three cases failed in both runs: Bitwarden on Google Play US, Signal on Apple US, and Discord on Google Play US. Every failure was backed by both rating-drop and low-rating-share signals; no known-theme or discovered-issue rule created a new failure. Signal's current-version evidence was manually checked and contained low-rating reports about data loss and account-safety concerns, but store reviews still show correlation rather than proving that a specific release caused those reports.
 
 All 40 cases completed without connector errors or partial-source decisions in these two runs. That improved source availability is an upstream snapshot, not a guarantee that Apple pagination will remain complete; the fail-safe source check remains necessary.
+
+## Release-link evidence follow-up: 2026-08-31
+
+Version metadata can correlate a low rating with a release, but it cannot show whether the reviewer is actually describing a shipped change. A new diagnostic layer therefore separates explicit update/version references from broader temporal-change language. It never removes a review from the rating sample and never changes the gate result.
+
+The final 40-case run completed without connector errors or partial sources:
+
+| Measure | Result |
+| --- | ---: |
+| Completed cases | 40 |
+| Decidable | 16 |
+| Pass | 12 |
+| Fail | 4 |
+| Insufficient data | 24 |
+| Release link supported | 2 |
+| Release link limited | 9 |
+| No release-link phrase found | 29 |
+
+All four failures still contained both a rating drop and a low-rating-share increase. The new evidence layer made their causal support visibly different:
+
+| Failed case | Diagnostic | Explicit update/version | Temporal change | One- to three-star reviews |
+| --- | --- | ---: | ---: | ---: |
+| Bitwarden · Google Play · US | limited | 0 | 2 | 9 |
+| Signal · Apple · US | none | 0 | 0 | 7 |
+| Notion · Google Play · US | supported | 1 | 2 | 6 |
+| Discord · Google Play · US | supported | 7 | 5 | 85 |
+
+Manual review agreed with the distinctions. Discord contained repeated references to the newest or recent updates. Notion included an “update required” loop with no update available, alongside changed behavior and worsening experience. Bitwarden described recent or no-longer-working behavior without naming a release. Signal's low ratings described data loss, scams, account safety, and moderation concerns but did not connect those complaints to an update; the rating regression remains visible while its release causality is explicitly unsupported by the retrieved text.
+
+Two preceding full runs produced the same pass/fail/insufficient statuses and aggregate counts. The final rule refinement added the Notion update loop and changed-behavior wording to the transparent benchmark before this recorded run. The committed live report remains aggregate-only and excludes review text, authors, and review identifiers.

@@ -142,6 +142,50 @@ test("keeps feature demand visible without blocking a release", () => {
   assert.equal(result.metrics.themeChanges[0].intent, "request");
 });
 
+test("surfaces release-link strength as a diagnostic without weakening the gate", () => {
+  const report = themeReport({
+    intent: "problem",
+    count: 0,
+    share: 0,
+    complaintCount: 0,
+    complaintShare: 0,
+    complaintEvidence: []
+  });
+  report.versions[0].averageRating = 3;
+  report.versions[0].negativeShare = 0.5;
+  report.versions[0].releaseLinkEvidence = {
+    level: "limited",
+    lowRatingReviewCount: 5,
+    explicitCount: 0,
+    changeCount: 1,
+    linkedCount: 1,
+    linkedShare: 0.2,
+    evidence: []
+  };
+
+  const result = evaluateRegression(report);
+
+  assert.equal(result.status, "fail");
+  assert.equal(result.releaseLinkEvidence.available, true);
+  assert.equal(result.releaseLinkEvidence.level, "limited");
+  assert.match(regressionToMarkdown(result), /Release-link evidence:\*\* LIMITED/);
+  assert.match(regressionToMarkdown(result), /correlation, not proof/);
+});
+
+test("marks release-link diagnostics unavailable for older report producers", () => {
+  const result = evaluateRegression(themeReport({
+    intent: "problem",
+    count: 0,
+    share: 0,
+    complaintCount: 0,
+    complaintShare: 0,
+    complaintEvidence: []
+  }), quietPolicy());
+
+  assert.equal(result.releaseLinkEvidence.available, false);
+  assert.equal(result.releaseLinkEvidence.level, "unknown");
+});
+
 test("fails on a concentrated low-rated problem theme with complaint-only evidence", () => {
   const evidence = [
     { rating: 1, excerpt: "Crashes on launch." },

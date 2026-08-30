@@ -1,0 +1,40 @@
+{"id":"explicit-en-1","language":"en","text":"The app crashes after the latest update.","label":"explicit"}
+{"id":"explicit-en-2","language":"en","text":"Ever since the app updated, messages will not send.","label":"explicit"}
+{"id":"explicit-en-3","language":"en","text":"This version broke notifications on my phone.","label":"explicit"}
+{"id":"explicit-en-4","language":"en","text":"It gets less stable with every update.","label":"explicit"}
+{"id":"explicit-en-5","language":"en","text":"This is a major regression from how it worked before.","label":"explicit"}
+{"id":"explicit-en-6","language":"en","text":"The app says update required even though no update is available.","label":"explicit"}
+{"id":"change-en-1","language":"en","text":"It used to open instantly, but now it freezes.","label":"change"}
+{"id":"change-en-2","language":"en","text":"I can no longer sign in to my account.","label":"change"}
+{"id":"change-en-3","language":"en","text":"Notifications suddenly stopped arriving.","label":"change"}
+{"id":"change-en-4","language":"en","text":"Autofill has become much worse recently.","label":"change"}
+{"id":"change-en-5","language":"en","text":"Why has the notification behavior changed?","label":"change"}
+{"id":"none-en-1","language":"en","text":"I installed it today and cannot log in.","label":"none"}
+{"id":"none-en-2","language":"en","text":"Please update my payment method.","label":"none"}
+{"id":"none-en-3","language":"en","text":"The mobile version is confusing and slow.","label":"none"}
+{"id":"none-en-4","language":"en","text":"Updated review: customer support fixed my issue.","label":"none"}
+{"id":"none-en-5","language":"en","text":"The news update is useful and well written.","label":"none"}
+{"id":"none-en-6","language":"en","text":"I changed my profile picture yesterday.","label":"none"}
+{"id":"explicit-de-1","language":"de","text":"Seit dem letzten Update stürzt die App ab.","label":"explicit"}
+{"id":"explicit-de-2","language":"de","text":"Nach dem Update kommen keine Benachrichtigungen mehr.","label":"explicit"}
+{"id":"explicit-de-3","language":"de","text":"Diese neue Version verliert meine Daten.","label":"explicit"}
+{"id":"change-de-1","language":"de","text":"Früher lief alles gut, inzwischen hängt die App ständig.","label":"change"}
+{"id":"change-de-2","language":"de","text":"Ich kann mich plötzlich nicht mehr anmelden.","label":"change"}
+{"id":"none-de-1","language":"de","text":"Die mobile Version ist langsam.","label":"none"}
+{"id":"none-de-2","language":"de","text":"Bitte aktualisieren Sie meine Zahlungsdaten.","label":"none"}
+{"id":"none-de-3","language":"de","text":"Ich habe die App heute installiert und sie öffnet nicht.","label":"none"}
+{"id":"explicit-zh-1","language":"zh","text":"更新以后一直闪退。","label":"explicit"}
+{"id":"explicit-zh-2","language":"zh","text":"这个版本收不到通知。","label":"explicit"}
+{"id":"change-zh-1","language":"zh","text":"以前很流畅，现在越来越卡。","label":"change"}
+{"id":"change-zh-2","language":"zh","text":"最近突然无法登录。","label":"change"}
+{"id":"none-zh-1","language":"zh","text":"请更新我的付款信息。","label":"none"}
+{"id":"none-zh-2","language":"zh","text":"今天第一次安装，但无法登录。","label":"none"}
+{"id":"explicit-ja-1","language":"ja","text":"アップデート後から起動できません。","label":"explicit"}
+{"id":"change-ja-1","language":"ja","text":"以前は使えたのに、突然ログインできなくなった。","label":"change"}
+{"id":"none-ja-1","language":"ja","text":"今日インストールしましたが、起動しません。","label":"none"}
+{"id":"explicit-es-1","language":"es","text":"Después de la última actualización ya no puedo entrar.","label":"explicit"}
+{"id":"change-es-1","language":"es","text":"Antes funcionaba bien, ahora se bloquea.","label":"change"}
+{"id":"none-es-1","language":"es","text":"La versión móvil es demasiado lenta.","label":"none"}
+{"id":"explicit-fr-1","language":"fr","text":"Depuis la dernière mise à jour, l'application plante.","label":"explicit"}
+{"id":"change-fr-1","language":"fr","text":"Avant tout marchait, maintenant la connexion échoue.","label":"change"}
+{"id":"none-fr-1","language":"fr","text":"La version mobile est difficile à utiliser.","label":"none"}

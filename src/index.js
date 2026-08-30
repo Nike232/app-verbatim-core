@@ -8,6 +8,7 @@ export {
 } from "./analysis.js";
 export { analyze, analyzeDataset } from "./run-analysis.js";
 export { discoverIssues } from "./discovery.js";
+export { classifyReleaseLink } from "./release-link.js";
 export {
   ConnectorDefinitionError,
   ConnectorNotFoundError,

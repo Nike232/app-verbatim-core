@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { expandCohortManifest, summarizeCohort } from "../scripts/lib/cohort.mjs";
+import { buildCohortResult, expandCohortManifest, summarizeCohort } from "../scripts/lib/cohort.mjs";
 
 test("expands paired apps across stores and storefronts", () => {
   const cases = expandCohortManifest({
@@ -67,6 +67,38 @@ test("summarizes decision and theme coverage by store and storefront", () => {
   assert.deepEqual(summary.currentComplaintThemeCoverage, { complaintReviews: 12, matchedComplaintReviews: 6, rate: 0.5 });
   assert.equal(summary.insufficientReasons.current, 1);
   assert.equal(summary.insufficientReasons.source, 0);
+  assert.deepEqual(summary.releaseLinkEvidenceLevels, { supported: 0, limited: 0, none: 0, unknown: 3 });
+});
+
+test("keeps release-link review text out of aggregate cohort reports", () => {
+  const output = buildCohortResult({
+    slug: "example-google-play-us-en",
+    appSlug: "example",
+    name: "Example",
+    category: "test",
+    store: "google-play",
+    storefront: "us-en",
+    country: "US",
+    language: "en",
+    url: "https://play.google.com/store/apps/details?id=com.example"
+  }, {
+    report: {
+      app: { id: "com.example", name: "Example", store: "google-play" },
+      source: { store: "google-play", appId: "com.example" },
+      generatedAt: "2026-08-31T00:00:00.000Z",
+      sample: { total: 20 },
+      versions: [
+        { version: "2", count: 10, averageRating: 4, negativeShare: 0.1, themeSignals: [], releaseLinkEvidence: releaseLink("secret review text") },
+        { version: "1", count: 10, averageRating: 4, negativeShare: 0.1, themeSignals: [], releaseLinkEvidence: releaseLink("older text") }
+      ],
+      discoveredIssues: []
+    },
+    datasets: { primary: { reviews: [] } }
+  });
+
+  assert.equal(output.releaseLinkEvidence.level, "limited");
+  assert.equal("evidence" in output.releaseLinkEvidence, false);
+  assert.doesNotMatch(JSON.stringify(output), /secret review text/);
 });
 
 function result(store, storefront, status, complaintReviews, matchedComplaintReviews, { currentMissing = 0 } = {}) {
@@ -77,10 +109,23 @@ function result(store, storefront, status, complaintReviews, matchedComplaintRev
     currentComplaintThemeCoverage: { complaintReviews, matchedComplaintReviews },
     sourceHealth: { fallbackUsed: false, versionDataAvailable: true },
     sourceEvidence: { ready: true, connector: store, reason: null },
+    releaseLinkEvidence: { available: false, level: "unknown" },
     versionEvidence: {
       current: { version: "2", missingReviews: currentMissing },
       baseline: { version: "1", missingReviews: 0 }
     },
     violations: []
+  };
+}
+
+function releaseLink(excerpt) {
+  return {
+    level: "limited",
+    lowRatingReviewCount: 2,
+    explicitCount: 0,
+    changeCount: 1,
+    linkedCount: 1,
+    linkedShare: 0.5,
+    evidence: [{ excerpt }]
   };
 }

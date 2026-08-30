@@ -4,6 +4,21 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.8] - 2026-08-31
+
+### Added
+
+- Added deterministic release-link evidence for every version and regression result, separating explicit update/version references from broader before-and-after language across English, German, Simplified Chinese, Japanese, Spanish, and French.
+- Added a transparent 40-example release-link benchmark with committed precision, recall, and exact-match gates, including hard negatives that mention “update” or “version” without linking a complaint to a release.
+
+### Changed
+
+- GitHub Action, CLI, MCP, public types, and aggregate live-cohort reports now expose whether causal release evidence is supported, limited, absent, or unavailable. This diagnostic does not filter review outcomes or weaken the rating-based gate.
+
+### Validated
+
+- A final 40-case Apple/Google × US/German matrix run completed with zero connector errors, 16 decisions, and the same four rating-plus-low-rating-share failures seen in two preceding runs. Release-link evidence separated Discord and Notion (`supported`) from Bitwarden (`limited`) and Signal (`none`) without changing any gate result.
+
 ## [0.5.7] - 2026-08-30
 
 ### Added
