@@ -37,6 +37,13 @@ test("builds evidence-backed themes and insights", () => {
   assert.equal(report.themes[0].id, "stability");
   assert.ok(report.insights.some((item) => item.evidence.length > 0));
   assert.ok(report.versions.some((item) => item.version === "2.0"));
+  const currentStability = report.versions.find((item) => item.version === "2.0").themeSignals.find((item) => item.id === "stability");
+  const previousRequest = report.versions.find((item) => item.version === "1.9").themeSignals.find((item) => item.id === "feature-request");
+  assert.equal(currentStability.intent, "problem");
+  assert.equal(currentStability.complaintCount, 3);
+  assert.equal(currentStability.complaintShare, 1);
+  assert.ok(currentStability.complaintEvidence.every((item) => item.rating <= 3));
+  assert.equal(previousRequest.complaintCount, 0);
 });
 
 test("classifies common non-English review language", async () => {

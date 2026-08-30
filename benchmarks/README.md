@@ -12,4 +12,4 @@ The script reports micro precision, recall, F1, exact-match accuracy, and per-la
 
 This is a transparent software regression test, not evidence of performance on representative production traffic. It is intentionally committed in readable form so contributors can challenge examples, add adversarial cases, and see exactly what a score means. Production decisions should validate the engine against a labeled sample from the target app, language, and storefront.
 
-Release-policy validation against changing public data is documented separately in [RELEASE_COHORT.md](RELEASE_COHORT.md). Its manifest is committed, but fetched review content is not.
+Release-policy validation against changing public data is documented separately in [RELEASE_COHORT.md](RELEASE_COHORT.md). The [cross-storefront matrix](STOREFRONT_MATRIX.md) adds paired Apple and Google cases in US English and German storefronts. Their manifests and aggregate conclusions are committed, but fetched review content is not.

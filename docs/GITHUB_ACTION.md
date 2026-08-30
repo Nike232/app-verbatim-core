@@ -1,6 +1,6 @@
 # GitHub Action reference
 
-App Verbatim's action evaluates the actual newest app version against the newest sufficiently sampled earlier baseline. It writes a Markdown job summary and two JSON files, and can fail the job or maintain one deduplicated regression issue.
+App Verbatim's action evaluates the actual newest app version against the newest sufficiently sampled earlier baseline. It refuses to decide when version evidence is too small or the public connector reports a partial source sample. It writes a Markdown job summary and two JSON files, and can fail the job or maintain one deduplicated regression issue.
 
 ## Minimal workflow
 
@@ -40,7 +40,7 @@ The result still reports `fail`, writes evidence and can maintain the deduplicat
 | `min-version-reviews` | `10` | Required sample for both versions. |
 | `max-rating-drop` | `0.4` | Allowed average-rating drop in stars. |
 | `max-negative-increase` | `0.15` | Allowed increase in one- and two-star share. |
-| `max-theme-increase` | `0.18` | Allowed increase in a known complaint theme. |
+| `max-theme-increase` | `0.18` | Allowed increase in a one- to three-star known problem theme. Positive mentions and feature-request themes never fail the gate. |
 | `max-discovered-share` | `0.05` | Allowed share for a newly discovered issue fingerprint. |
 | `min-theme-reviews` | `3` | Required current-version evidence for a theme or new issue. |
 | `create-issue` | `false` | Create or update one issue when the result fails. |
@@ -71,4 +71,4 @@ The result still reports `fail`, writes evidence and can maintain the deduplicat
       ${{ steps.reviews.outputs.report-file }}
 ```
 
-Pin a full release tag such as `v0.5.5` when your security policy does not permit moving major tags.
+Pin a full release tag such as `v0.5.6` when your security policy does not permit moving major tags.

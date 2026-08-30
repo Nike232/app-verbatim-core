@@ -4,6 +4,24 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.6] - 2026-08-30
+
+### Added
+
+- Added an aggregate-only 40-case cross-storefront validation matrix pairing 10 applications across Apple App Store and Google Play listings in US English and German storefronts.
+- Added per-version `complaintCount`, `complaintShare`, and complaint-only evidence alongside the existing all-rating theme aggregates.
+
+### Fixed
+
+- Stopped positive four- and five-star theme mentions from being counted as release-blocking complaints.
+- Kept feature-request themes visible for product discovery without allowing feature demand alone to fail a release gate.
+- Retried transient empty Apple RSS responses on every requested page and marked persistent later-page gaps as partial, preventing a truncated upstream sample from producing a pass or fail decision.
+- Added structured `sourceEvidence` readiness to regression results so connector completeness is independent from per-version sample counts.
+
+### Validated
+
+- Two consecutive pre-fix matrix runs exposed two theme-only false blocks and intermittent Apple later-page truncation; corrected runs produced no pass/fail contradictions, preserved the same two rating-plus-low-rating-share failures, and converted incomplete Apple sources to explicit insufficient results.
+
 ## [0.5.5] - 2026-08-30
 
 ### Added

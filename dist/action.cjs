@@ -614,12 +614,17 @@ function aggregateVersions2(reviews2) {
     const sorted = [...items].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
     const themeSignals = THEME_RULES.map((rule) => {
       const matched = items.filter((review) => classifyReview(review).some((match) => match.id === rule.id));
+      const complaints = matched.filter((review) => review.rating <= 3);
       return {
         id: rule.id,
         label: rule.label,
+        intent: rule.intent,
         count: matched.length,
         share: round2(matched.length / items.length, 3),
         negativeCount: matched.filter((review) => review.rating <= 2).length,
+        complaintCount: complaints.length,
+        complaintShare: round2(complaints.length / items.length, 3),
+        complaintEvidence: complaints.sort((a, b) => evidenceScore2(b) - evidenceScore2(a)).slice(0, 3).map(evidenceRef2),
         evidence: matched.sort((a, b) => evidenceScore2(b) - evidenceScore2(a)).slice(0, 3).map(evidenceRef2)
       };
     }).filter((theme) => theme.count > 0).sort((a, b) => b.count - a.count);
@@ -837,7 +842,7 @@ function validateConnector(connector) {
 }
 
 // src/version.js
-var VERSION = "0.5.5";
+var VERSION = "0.5.6";
 
 // src/connectors/errors.js
 var ConnectorError = class extends Error {
@@ -854,11 +859,12 @@ var ConnectorError = class extends Error {
 var MAX_RSS_PAGES = 10;
 var PAGE_SIZE = 50;
 var APP_STORE_PAGE_REVIEW_LIMIT = 10;
+var EMPTY_PAGE_ATTEMPTS = 3;
 var USER_AGENT = `AppVerbatim/${VERSION} (+https://github.com/Nike232/app-verbatim-core)`;
 var appleConnector = defineConnector({
   id: "apple-app-store",
   name: "Apple App Store public reviews",
-  version: "2",
+  version: "3",
   supports: (source) => source?.store === "apple-app-store",
   fetch: fetchAppleReviews
 });
@@ -870,23 +876,38 @@ async function fetchAppleReviews(source, options = {}) {
   let pagesFetched = 0;
   let publicEndpoint = "iTunes Customer Reviews RSS";
   let fallbackUsed = false;
+  let paginationComplete = false;
+  let paginationStopReason = null;
   for (let page = 1; page <= Math.min(MAX_RSS_PAGES, Math.ceil(limit / PAGE_SIZE)); page += 1) {
     const url2 = `https://itunes.apple.com/${country}/rss/customerreviews/page=${page}/id=${source.appId}/sortby=mostrecent/json`;
-    const entries = await fetchReviewEntries(url2, options, page === 1 ? 2 : 1);
-    if (!entries.length) break;
+    const entries = await fetchReviewEntries(url2, options, EMPTY_PAGE_ATTEMPTS);
+    if (!entries.length) {
+      paginationStopReason = reviews2.length ? "empty-page" : "empty-feed";
+      break;
+    }
     pagesFetched += 1;
     for (const entry of entries) {
       if (!entry["im:rating"]?.label || !entry.content?.label) continue;
       reviews2.push(normalizeAppleEntry(entry, source, country));
       if (reviews2.length >= limit) break;
     }
-    if (reviews2.length >= limit || entries.length < PAGE_SIZE) break;
+    if (reviews2.length >= limit) {
+      paginationComplete = true;
+      paginationStopReason = "requested-limit";
+      break;
+    }
+    if (entries.length < PAGE_SIZE) {
+      paginationComplete = true;
+      paginationStopReason = "end-of-feed";
+      break;
+    }
   }
   if (!reviews2.length) {
     reviews2.push(...await fetchAppleReviewPage(source, country, { ...options, limit }));
     pagesFetched = 1;
     publicEndpoint = "App Store public reviews page";
     fallbackUsed = true;
+    paginationStopReason = "public-page-fallback";
   }
   return {
     app: {
@@ -905,6 +926,9 @@ async function fetchAppleReviews(source, options = {}) {
       pagesFetched,
       publicEndpoint,
       fallbackUsed,
+      paginationComplete,
+      paginationStopReason,
+      partialResults: fallbackUsed || !paginationComplete,
       requestedLimit: limit,
       returnedReviews: reviews2.length,
       versionDataAvailable: reviews2.some((review) => Boolean(review.appVersion))
@@ -7624,8 +7648,9 @@ function evaluateRegression(report, options = {}) {
   const baselineCandidate = current ? report.versions.slice(1).find((version2) => version2.version !== current.version) ?? null : null;
   const baseline = currentEligible ? report.versions.slice(1).find((version2) => version2.version !== current.version && version2.count >= policy.minVersionReviews) ?? null : null;
   const versionEvidence = buildVersionEvidence(current, baseline ?? baselineCandidate, policy.minVersionReviews, Boolean(currentEligible && baseline));
-  if (!currentEligible || !baseline) {
-    const summary = !current ? `Need at least ${policy.minVersionReviews} reviews for the newest version and one earlier baseline; found no version data.` : !currentEligible ? `Newest version ${current.version} has ${reviewCount(current.count)}; need at least ${policy.minVersionReviews} before comparing it.` : baselineCandidate ? `Earlier version ${baselineCandidate.version} has ${reviewCount(baselineCandidate.count)}; need at least ${policy.minVersionReviews} for a baseline.` : `Need an earlier baseline version with at least ${policy.minVersionReviews} reviews.`;
+  const sourceEvidence = buildSourceEvidence(report);
+  if (!sourceEvidence.ready || !currentEligible || !baseline) {
+    const summary = !sourceEvidence.ready ? `Public review source returned a partial sample (${sourceEvidence.reason}); release comparison is unsafe.` : !current ? `Need at least ${policy.minVersionReviews} reviews for the newest version and one earlier baseline; found no version data.` : !currentEligible ? `Newest version ${current.version} has ${reviewCount(current.count)}; need at least ${policy.minVersionReviews} before comparing it.` : baselineCandidate ? `Earlier version ${baselineCandidate.version} has ${reviewCount(baselineCandidate.count)}; need at least ${policy.minVersionReviews} for a baseline.` : `Need an earlier baseline version with at least ${policy.minVersionReviews} reviews.`;
     return {
       schemaVersion: 1,
       status: "insufficient-data",
@@ -7635,6 +7660,7 @@ function evaluateRegression(report, options = {}) {
       currentVersion: current?.version ?? null,
       baselineVersion: baseline?.version ?? null,
       versionEvidence,
+      sourceEvidence,
       policy,
       metrics: null,
       violations: [],
@@ -7647,14 +7673,18 @@ function evaluateRegression(report, options = {}) {
   const baselineThemes = new Map((baseline.themeSignals ?? []).map((theme) => [theme.id, theme]));
   const themeChanges = [...currentThemes.values()].map((theme) => {
     const previous = baselineThemes.get(theme.id);
+    const currentComplaint = complaintThemeView(theme);
+    const baselineComplaint = complaintThemeView(previous);
     return {
       id: theme.id,
       label: theme.label,
-      count: theme.count,
-      currentShare: theme.share,
-      baselineShare: previous?.share ?? 0,
-      shareIncrease: round3(theme.share - (previous?.share ?? 0), 3),
-      evidence: theme.evidence ?? []
+      intent: currentComplaint.intent,
+      count: currentComplaint.count,
+      baselineCount: baselineComplaint.count,
+      currentShare: currentComplaint.share,
+      baselineShare: baselineComplaint.share,
+      shareIncrease: round3(currentComplaint.share - baselineComplaint.share, 3),
+      evidence: currentComplaint.evidence
     };
   }).sort((left, right) => right.shareIncrease - left.shareIncrease || right.count - left.count);
   const discoveredIssueChanges = (report.discoveredIssues ?? []).map((issue2) => {
@@ -7701,6 +7731,7 @@ function evaluateRegression(report, options = {}) {
     });
   }
   for (const theme of themeChanges) {
+    if (theme.intent === "request") continue;
     if (theme.count < policy.minThemeReviews || theme.shareIncrease <= policy.maxThemeShareIncrease) continue;
     violations.push({
       id: `theme-${theme.id}`,
@@ -7736,6 +7767,7 @@ function evaluateRegression(report, options = {}) {
     currentVersion: current.version,
     baselineVersion: baseline.version,
     versionEvidence,
+    sourceEvidence,
     policy,
     metrics: {
       current: pickVersionMetrics(current),
@@ -7804,12 +7836,32 @@ function pickVersionMetrics(version2) {
     negativeShare: version2.negativeShare
   };
 }
+function complaintThemeView(theme) {
+  if (!theme) return { intent: "problem", count: 0, share: 0, evidence: [] };
+  const hasComplaintMetrics = Number.isFinite(theme.complaintCount) && Number.isFinite(theme.complaintShare);
+  return {
+    intent: theme.intent ?? "problem",
+    count: hasComplaintMetrics ? theme.complaintCount : theme.count ?? 0,
+    share: hasComplaintMetrics ? theme.complaintShare : theme.share ?? 0,
+    evidence: hasComplaintMetrics ? theme.complaintEvidence ?? [] : theme.evidence ?? []
+  };
+}
 function buildVersionEvidence(current, baseline, requiredPerVersion, ready) {
   return {
     ready,
     requiredPerVersion,
     current: versionSample(current, requiredPerVersion),
     baseline: versionSample(baseline, requiredPerVersion)
+  };
+}
+function buildSourceEvidence(report) {
+  const dataset = report.provenance?.datasets?.find((item) => item.role === "primary") ?? report.provenance?.datasets?.[0];
+  const metadata = dataset?.metadata ?? {};
+  const partial2 = metadata.partialResults === true;
+  return {
+    ready: !partial2,
+    connector: metadata.connector ?? dataset?.connector ?? report.source?.store ?? null,
+    reason: partial2 ? metadata.paginationStopReason ?? "partial-results" : null
   };
 }
 function versionSample(version2, required3) {

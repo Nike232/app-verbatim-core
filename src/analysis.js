@@ -270,12 +270,17 @@ function aggregateVersions(reviews) {
     const sorted = [...items].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
     const themeSignals = THEME_RULES.map((rule) => {
       const matched = items.filter((review) => classifyReview(review).some((match) => match.id === rule.id));
+      const complaints = matched.filter((review) => review.rating <= 3);
       return {
         id: rule.id,
         label: rule.label,
+        intent: rule.intent,
         count: matched.length,
         share: round(matched.length / items.length, 3),
         negativeCount: matched.filter((review) => review.rating <= 2).length,
+        complaintCount: complaints.length,
+        complaintShare: round(complaints.length / items.length, 3),
+        complaintEvidence: complaints.sort((a, b) => evidenceScore(b) - evidenceScore(a)).slice(0, 3).map(evidenceRef),
         evidence: matched.sort((a, b) => evidenceScore(b) - evidenceScore(a)).slice(0, 3).map(evidenceRef)
       };
     }).filter((theme) => theme.count > 0).sort((a, b) => b.count - a.count);

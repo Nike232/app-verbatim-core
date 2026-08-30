@@ -88,6 +88,80 @@ test("reports the closest under-sampled baseline in structured evidence", () => 
   assert.match(result.summary, /Earlier version 2\.0\.0 has 1 review;/);
 });
 
+test("refuses a release decision from a partial public review sample", () => {
+  const report = themeReport({
+    intent: "problem",
+    count: 0,
+    share: 0,
+    complaintCount: 0,
+    complaintShare: 0,
+    complaintEvidence: []
+  });
+  report.provenance = {
+    datasets: [{
+      role: "primary",
+      connector: "apple-app-store",
+      metadata: { connector: "apple-app-store", partialResults: true, paginationStopReason: "empty-page" }
+    }]
+  };
+
+  const result = evaluateRegression(report, quietPolicy());
+
+  assert.equal(result.status, "insufficient-data");
+  assert.equal(result.versionEvidence.ready, true);
+  assert.deepEqual(result.sourceEvidence, { ready: false, connector: "apple-app-store", reason: "empty-page" });
+  assert.match(result.summary, /partial sample/);
+});
+
+test("does not treat positive theme mentions as release complaints", () => {
+  const result = evaluateRegression(themeReport({
+    intent: "problem",
+    count: 10,
+    share: 1,
+    complaintCount: 0,
+    complaintShare: 0,
+    evidence: [{ rating: 5, excerpt: "Sync is excellent." }],
+    complaintEvidence: []
+  }), quietPolicy());
+
+  assert.equal(result.status, "pass");
+  assert.equal(result.metrics.themeChanges[0].count, 0);
+});
+
+test("keeps feature demand visible without blocking a release", () => {
+  const result = evaluateRegression(themeReport({
+    intent: "request",
+    count: 4,
+    share: 0.4,
+    complaintCount: 4,
+    complaintShare: 0.4,
+    complaintEvidence: [{ rating: 2, excerpt: "Please add offline mode." }]
+  }), quietPolicy());
+
+  assert.equal(result.status, "pass");
+  assert.equal(result.metrics.themeChanges[0].intent, "request");
+});
+
+test("fails on a concentrated low-rated problem theme with complaint-only evidence", () => {
+  const evidence = [
+    { rating: 1, excerpt: "Crashes on launch." },
+    { rating: 2, excerpt: "Still crashes." },
+    { rating: 3, excerpt: "Crash needs fixing." }
+  ];
+  const result = evaluateRegression(themeReport({
+    intent: "problem",
+    count: 5,
+    share: 0.5,
+    complaintCount: 3,
+    complaintShare: 0.3,
+    complaintEvidence: evidence
+  }), quietPolicy());
+
+  assert.equal(result.status, "fail");
+  assert.equal(result.violations[0].id, "theme-stability");
+  assert.deepEqual(result.violations[0].evidence, evidence);
+});
+
 test("neutralizes mentions and HTML from untrusted review text", () => {
   const markdown = regressionToMarkdown({
     status: "fail",
@@ -107,3 +181,26 @@ test("neutralizes mentions and HTML from untrusted review text", () => {
   assert.doesNotMatch(markdown, /<Unsafe>|@team/);
   assert.match(markdown, /&lt;Unsafe&gt;/);
 });
+
+function themeReport(currentTheme) {
+  return {
+    app: { id: "example", name: "Example", store: "google-play" },
+    source: { store: "google-play", appId: "example" },
+    generatedAt: "2026-08-30T00:00:00.000Z",
+    versions: [
+      { version: "2.0.0", count: 10, averageRating: 4.5, negativeShare: 0.1, themeSignals: [{ id: "stability", label: "Stability and crashes", ...currentTheme }] },
+      { version: "1.0.0", count: 10, averageRating: 4.5, negativeShare: 0.1, themeSignals: [] }
+    ],
+    discoveredIssues: []
+  };
+}
+
+function quietPolicy() {
+  return {
+    maxRatingDrop: 4,
+    maxNegativeShareIncrease: 1,
+    maxThemeShareIncrease: 0.18,
+    maxDiscoveredIssueShare: 1,
+    minThemeReviews: 3
+  };
+}
