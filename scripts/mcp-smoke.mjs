@@ -4,6 +4,8 @@ import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
+import packageMetadata from "../package.json" with { type: "json" };
+
 const root = path.resolve(import.meta.dirname, "..");
 const client = new Client({ name: "app-verbatim-smoke", version: "1.0.0" });
 const transport = new StdioClientTransport({
@@ -15,6 +17,7 @@ const transport = new StdioClientTransport({
 
 try {
   await client.connect(transport);
+  assert.equal(client.getServerVersion()?.version, packageMetadata.version);
   const listed = await client.listTools();
   assert.deepEqual(listed.tools.map((tool) => tool.name).sort(), [
     "analyze_app_reviews",

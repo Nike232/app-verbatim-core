@@ -36,5 +36,4 @@ export {
 } from "./exporters.js";
 export { DEFAULT_POLICY, evaluateRegression, regressionToMarkdown } from "./regression.js";
 export { parseSourceRef, UnsupportedStoreUrlError } from "./source-ref.js";
-
-export const VERSION = "0.5.0";
+export { VERSION } from "./version.js";

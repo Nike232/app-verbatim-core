@@ -9,7 +9,7 @@ import { createDemoDataset } from "./connectors/demo.js";
 import { reportToMarkdown } from "./exporters.js";
 import { evaluateRegression, regressionToMarkdown } from "./regression.js";
 import { analyze, analyzeDataset } from "./run-analysis.js";
-import { VERSION } from "./index.js";
+import { VERSION } from "./version.js";
 
 const sourceSchema = {
   appUrl: z.string().url().optional().describe("Public Apple App Store or Google Play listing URL"),

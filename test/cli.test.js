@@ -5,6 +5,8 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 
+import packageMetadata from "../package.json" with { type: "json" };
+
 const root = path.resolve(import.meta.dirname, "..");
 const cli = path.join(root, "src", "cli.js");
 
@@ -13,7 +15,7 @@ test("prints help and version", () => {
   assert.equal(help.status, 0);
   assert.match(help.stdout, /Evidence-backed/);
   const version = run(["--version"]);
-  assert.equal(version.stdout.trim(), "0.5.0");
+  assert.equal(version.stdout.trim(), packageMetadata.version);
 });
 
 test("writes an offline report and refuses accidental overwrite", async () => {
@@ -65,6 +67,8 @@ test("scaffolds a ready-to-run GitHub Actions workflow", async () => {
     ];
     const first = run(args, directory);
     assert.equal(first.status, 0, first.stderr);
+    assert.match(first.stderr, /Mode: observe-only/);
+    assert.match(first.stderr, /Issues: enabled/);
     assert.match(first.stderr, /Next: commit the workflow/);
 
     const workflow = await readFile(path.join(directory, ".github", "workflows", "app-verbatim.yml"), "utf8");
@@ -82,6 +86,16 @@ test("scaffolds a ready-to-run GitHub Actions workflow", async () => {
 
     const forced = run([...args, "--force"], directory);
     assert.equal(forced.status, 0, forced.stderr);
+
+    const apple = run([
+      "init",
+      "https://apps.apple.com/us/app/example/id123456789",
+      "--observe-only",
+      "--output",
+      "apple-review-regression.yml"
+    ], directory);
+    assert.equal(apple.status, 0, apple.stderr);
+    assert.match(apple.stderr, /Apple note: public fallback reviews may not include app versions/);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

@@ -4,6 +4,16 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-08-30
+
+### Fixed
+
+- Made the CLI, MCP server, connector user agent, and public API share one version module, with smoke tests that verify it against package metadata so release identity cannot drift silently again.
+
+### Changed
+
+- Made `init` state its enforcement and Issue modes after scaffolding, and warn Apple users when public fallback data cannot support version attribution.
+
 ## [0.5.1] - 2026-08-30
 
 ### Fixed

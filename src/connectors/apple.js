@@ -1,11 +1,12 @@
 import { normalizeReview } from "../analysis.js";
 import { defineConnector } from "../connector-registry.js";
+import { VERSION } from "../version.js";
 import { ConnectorError } from "./errors.js";
 
 const MAX_RSS_PAGES = 10;
 const PAGE_SIZE = 50;
 const APP_STORE_PAGE_REVIEW_LIMIT = 10;
-const USER_AGENT = "AppVerbatim/0.5.1 (+https://github.com/Nike232/app-verbatim-core)";
+const USER_AGENT = `AppVerbatim/${VERSION} (+https://github.com/Nike232/app-verbatim-core)`;
 
 export const appleConnector = defineConnector({
   id: "apple-app-store",

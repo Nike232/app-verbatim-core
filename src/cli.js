@@ -9,7 +9,7 @@ import { createDefaultRegistry } from "./connectors/index.js";
 import { exportReport, resolveExportFormat } from "./exporters.js";
 import { evaluateRegression, regressionToMarkdown } from "./regression.js";
 import { parseSourceRef } from "./source-ref.js";
-import { VERSION } from "./index.js";
+import { VERSION } from "./version.js";
 
 const HELP = `App Verbatim ${VERSION}
 
@@ -169,6 +169,11 @@ async function initCommand(values) {
     observeOnly: Boolean(options["observe-only"])
   });
   await writeContent(workflow, output, options.force, "GitHub Actions workflow");
+  console.error(`Mode: ${options["observe-only"] ? "observe-only (regressions are reported without failing the workflow)" : "enforced (policy violations fail the workflow)"}`);
+  console.error(`Issues: ${options["create-issue"] ? "enabled (one deduplicated regression issue)" : "disabled"}`);
+  if (source.store === "apple-app-store") {
+    console.error("Apple note: public fallback reviews may not include app versions; insufficient evidence is reported instead of guessed.");
+  }
   console.error("Next: commit the workflow, then run it from the Actions tab.");
 }
 

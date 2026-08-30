@@ -836,6 +836,9 @@ function validateConnector(connector) {
   if (typeof connector.fetch !== "function") throw new ConnectorDefinitionError("Connector fetch(source, options) must be a function.");
 }
 
+// src/version.js
+var VERSION = "0.5.2";
+
 // src/connectors/errors.js
 var ConnectorError = class extends Error {
   constructor(store, message, options = {}) {
@@ -851,7 +854,7 @@ var ConnectorError = class extends Error {
 var MAX_RSS_PAGES = 10;
 var PAGE_SIZE = 50;
 var APP_STORE_PAGE_REVIEW_LIMIT = 10;
-var USER_AGENT = "AppVerbatim/0.5.1 (+https://github.com/Nike232/app-verbatim-core)";
+var USER_AGENT = `AppVerbatim/${VERSION} (+https://github.com/Nike232/app-verbatim-core)`;
 var appleConnector = defineConnector({
   id: "apple-app-store",
   name: "Apple App Store public reviews",

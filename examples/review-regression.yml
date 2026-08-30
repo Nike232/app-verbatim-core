@@ -18,5 +18,7 @@ jobs:
           app-url: https://play.google.com/store/apps/details?id=YOUR.APP.ID
           country: US
           language: en
+          # Remove after the thresholds fit this app's normal review volume.
+          fail-on-regression: false
           create-issue: true
           github-token: ${{ secrets.GITHUB_TOKEN }}

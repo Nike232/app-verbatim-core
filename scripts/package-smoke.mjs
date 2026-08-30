@@ -21,8 +21,9 @@ try {
   await writeFile(path.join(consumer, "smoke.mjs"), `
     import assert from "node:assert/strict";
     import { analyzeDataset, createDemoDataset, VERSION } from "app-verbatim";
+    import packageMetadata from "app-verbatim/package.json" with { type: "json" };
     const { report } = analyzeDataset(createDemoDataset(8), { source: { store: "demo", appId: "primary" } });
-    assert.equal(VERSION, "0.5.0");
+    assert.equal(VERSION, packageMetadata.version);
     assert.equal(report.sample.total, 8);
   `, "utf8");
   run(process.execPath, [npmCli, "install", "--ignore-scripts", tarball], consumer);
