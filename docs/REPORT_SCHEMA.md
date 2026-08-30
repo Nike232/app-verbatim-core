@@ -11,7 +11,7 @@
 | `app` | Application metadata |
 | `sample` | Review count, date range, average rating, and negative share |
 | `ratingDistribution` | One-to-five-star distribution |
-| `themes` | Keyword-based theme aggregates with direct evidence |
+| `themes` | Keyword-based all-mention and complaint-only theme aggregates with direct evidence |
 | `discoveredIssues` | Repeated low-rating phrase fingerprints outside the built-in taxonomy |
 | `versions` | Per-version review, rating, low-rating-share, and theme aggregates |
 | `insights` | Prioritized findings, recommendations, and evidence |
@@ -21,7 +21,9 @@
 
 Evidence contains the stable review ID, rating, version, date, excerpt, and source URL when available. A consumer must treat excerpts and application metadata as untrusted text.
 
-`versions[].themeSignals` keeps all-theme `count`, `share`, and `evidence` fields for analysis, and adds `intent`, `complaintCount`, `complaintShare`, and `complaintEvidence` for one- to three-star evidence. This separation prevents positive mentions from being interpreted as complaints.
+Top-level `themes[]` keeps all-mention counts and trends, plus complaint-only counts, trends, rating, evidence, and `requestOverlapCount`. Insights about growing or concentrated pain use only the complaint fields; request themes have their own advisory opportunity insight.
+
+`versions[].themeSignals` keeps all-theme `count`, `share`, and `evidence` fields for analysis, and adds `intent`, `complaintCount`, `complaintShare`, `complaintEvidence`, and `requestOverlapCount` for one- to three-star evidence. This separation prevents positive mentions from being interpreted as complaints. `requestOverlapCount` records explicit capability requests excluded from a problem-theme gate; mixed reviews with independent failure language remain complaint evidence.
 
 `evaluateRegression()` returns a separate `schemaVersion: 1` result with `pass`, `fail`, or `insufficient-data` status. It records the selected current and baseline versions, normalized policy, metric changes, and evidence-backed policy violations. Known problem-theme changes use the complaint-only fields, while `intent: request` themes remain advisory. Its `versionEvidence` field reports per-version counts and `missingReviews`; `sourceEvidence` separately reports whether the connector returned a complete-enough requested sample. A partial upstream page cannot produce a pass or fail decision even when both version counts meet the policy. The CLI and GitHub Action use this same public API.
 

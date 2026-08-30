@@ -4,6 +4,23 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.7] - 2026-08-30
+
+### Added
+
+- Added high-precision German complaint vocabulary and German stop words for both fixed themes and unknown-problem phrase discovery.
+- Expanded the transparent benchmark to 43 German examples and added a committed per-language quality policy that prevents global scores from hiding German regressions.
+- Added request-overlap accounting so an explicit request for a requestable capability such as offline mode stays advisory while a real failure mentioned alongside a separate request remains blocking evidence. Complaint insights and evidence selection now use the same distinction as release gates.
+
+### Changed
+
+- Theme matches now expose their `intent`, and per-version theme signals report `requestOverlapCount` alongside complaint-only evidence.
+- Clarified the presentation labels for stability, monetization, and privacy/security themes without changing their stable theme IDs.
+
+### Validated
+
+- Replayed the old and new classifiers over the same 44-review live German current-version sample: matched complaint coverage increased from 9 reviews (`20.5%`) to 17 (`38.6%`). Two subsequent 40-case matrix runs were identical, with German coverage close to US English (`41.2%`) and no theme-only release failure.
+
 ## [0.5.6] - 2026-08-30
 
 ### Added

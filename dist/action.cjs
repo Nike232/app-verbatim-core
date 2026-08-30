@@ -102,6 +102,65 @@ var STOP_WORDS = /* @__PURE__ */ new Set([
   "your",
   "update",
   "version",
+  "der",
+  "die",
+  "das",
+  "den",
+  "dem",
+  "des",
+  "ein",
+  "eine",
+  "einer",
+  "einem",
+  "einen",
+  "und",
+  "oder",
+  "aber",
+  "auch",
+  "ist",
+  "sind",
+  "war",
+  "waren",
+  "wird",
+  "werden",
+  "mit",
+  "ohne",
+  "f\xFCr",
+  "von",
+  "vom",
+  "im",
+  "in",
+  "auf",
+  "aus",
+  "zu",
+  "zur",
+  "zum",
+  "ich",
+  "mir",
+  "mich",
+  "mein",
+  "meine",
+  "man",
+  "wenn",
+  "seit",
+  "nach",
+  "noch",
+  "mehr",
+  "sehr",
+  "nicht",
+  "kein",
+  "keine",
+  "nur",
+  "schon",
+  "immer",
+  "wieder",
+  "leider",
+  "eigentlich",
+  "wirklich",
+  "jetzt",
+  "gibt",
+  "update",
+  "version",
   "\u4E00\u4E2A",
   "\u8FD9\u4E2A",
   "\u90A3\u4E2A",
@@ -280,68 +339,72 @@ var DAY_MS2 = 864e5;
 var THEME_RULES = [
   {
     id: "stability",
-    label: "Stability and crashes",
-    description: "Crashes, freezes, errors, and launch failures",
+    label: "Stability and failures",
+    description: "Crashes, freezes, errors, launch failures, and broken functionality",
     intent: "problem",
-    keywords: ["crash", "crashed", "crashing", "freeze", "frozen", "bug", "error", "broken", "won't open", "doesn't open", "\u5D29\u6E83", "\u95EA\u9000", "\u5361\u6B7B", "\u9519\u8BEF", "\u6253\u4E0D\u5F00", "\u65E0\u6CD5\u542F\u52A8", "absturz", "st\xFCrzt", "plantage", "plante", "bloquea", "fallo", "\u30AF\u30E9\u30C3\u30B7\u30E5", "\u5F37\u5236\u7D42\u4E86", "\u843D\u3061\u308B"]
+    keywords: ["crash", "crashed", "crashing", "freeze", "frozen", "bug", "error", "broken", "won't open", "doesn't open", "\u5D29\u6E83", "\u95EA\u9000", "\u5361\u6B7B", "\u9519\u8BEF", "\u6253\u4E0D\u5F00", "\u65E0\u6CD5\u542F\u52A8", "absturz", "abgest\xFCrzt", "st\xFCrzt", "h\xE4ngt sich auf", "h\xE4ngt", "friert ein", "friert", "funktioniert nicht", "l\xE4sst sich nicht \xF6ffnen", "\xF6ffnet nicht", "kaputt", "fehlermeldung", "plantage", "plante", "bloquea", "fallo", "\u30AF\u30E9\u30C3\u30B7\u30E5", "\u5F37\u5236\u7D42\u4E86", "\u843D\u3061\u308B"]
   },
   {
     id: "performance",
     label: "Performance and battery",
     description: "Speed, lag, heat, battery drain, and resource usage",
     intent: "problem",
-    keywords: ["slow", "lag", "laggy", "battery", "drain", "overheat", "loading", "stutter", "\u5361\u987F", "\u5F88\u6162", "\u8017\u7535", "\u53D1\u70ED", "\u52A0\u8F7D", "langsam", "batterie", "lent", "lente", "bater\xEDa", "\u9045\u3044", "\u91CD\u3044", "\u30D0\u30C3\u30C6\u30EA\u30FC"]
+    keywords: ["slow", "lag", "laggy", "battery", "drain", "overheat", "loading", "stutter", "\u5361\u987F", "\u5F88\u6162", "\u8017\u7535", "\u53D1\u70ED", "\u52A0\u8F7D", "langsam", "batterie", "akku", "ruckelt", "stockt", "tr\xE4ge", "wird hei\xDF", "l\xE4dt ewig", "l\xE4dt sehr lange", "ladezeit", "verbraucht", "speicherverbrauch", "lent", "lente", "lenta", "bater\xEDa", "\u9045\u3044", "\u91CD\u3044", "\u30D0\u30C3\u30C6\u30EA\u30FC"]
   },
   {
     id: "pricing",
-    label: "Pricing and subscriptions",
-    description: "Pricing, paywalls, trials, renewals, and refunds",
+    label: "Pricing and monetization",
+    description: "Pricing, subscriptions, paywalls, advertising, renewals, and refunds",
     intent: "problem",
-    keywords: ["price", "pricing", "expensive", "subscription", "subscribe", "paywall", "trial", "refund", "charged", "\u4EF7\u683C", "\u592A\u8D35", "\u8BA2\u9605", "\u4ED8\u8D39", "\u9000\u6B3E", "\u6263\u8D39", "\u7EED\u8D39", "teuer", "abonnement", "cher", "caro", "suscripci\xF3n", "\u9AD8\u3044", "\u8AB2\u91D1", "\u30B5\u30D6\u30B9\u30AF"]
+    keywords: ["price", "pricing", "expensive", "subscription", "subscribe", "paywall", "trial", "refund", "charged", "\u4EF7\u683C", "\u592A\u8D35", "\u8BA2\u9605", "\u4ED8\u8D39", "\u9000\u6B3E", "\u6263\u8D39", "\u7EED\u8D39", "teuer", "abonnement", "abo", "preis", "preise", "preiserh\xF6hung", "kosten", "extrakosten", "bezahlen", "werbung", "werbeanzeigen", "k\xFCndigen", "k\xFCndigung", "kostenpflichtig", "cher", "caro", "suscripci\xF3n", "\u9AD8\u3044", "\u8AB2\u91D1", "\u30B5\u30D6\u30B9\u30AF"]
   },
   {
     id: "account",
     label: "Login and accounts",
     description: "Sign-in, registration, verification, and account access",
     intent: "problem",
-    keywords: ["login", "log in", "sign in", "account", "password", "verification", "code", "\u767B\u5F55", "\u8D26\u6237", "\u8D26\u53F7", "\u5BC6\u7801", "\u9A8C\u8BC1\u7801", "\u6CE8\u518C", "anmelden", "connexion", "inicio de sesi\xF3n", "contrase\xF1a", "\u30ED\u30B0\u30A4\u30F3", "\u30A2\u30AB\u30A6\u30F3\u30C8", "\u30D1\u30B9\u30EF\u30FC\u30C9"]
+    keywords: ["login", "log in", "sign in", "account", "password", "verification", "code", "\u767B\u5F55", "\u8D26\u6237", "\u8D26\u53F7", "\u5BC6\u7801", "\u9A8C\u8BC1\u7801", "\u6CE8\u518C", "anmelden", "anmeldung", "einloggen", "konto", "benutzerkonto", "registrierung", "passwort", "best\xE4tigungscode", "verifizierung", "kein zugang", "connexion", "inicio de sesi\xF3n", "contrase\xF1a", "\u30ED\u30B0\u30A4\u30F3", "\u30A2\u30AB\u30A6\u30F3\u30C8", "\u30D1\u30B9\u30EF\u30FC\u30C9"]
   },
   {
     id: "sync",
     label: "Sync and data",
     description: "Cross-device sync, data loss, backup, import, and export",
     intent: "problem",
-    keywords: ["sync", "lost data", "missing data", "backup", "restore", "import", "export", "\u540C\u6B65", "\u6570\u636E\u4E22\u5931", "\u5907\u4EFD", "\u6062\u590D", "\u5BFC\u5165", "\u5BFC\u51FA", "synchron", "sauvegarde", "sincron", "copia de seguridad", "\u540C\u671F", "\u30C7\u30FC\u30BF\u6D88\u5931", "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7"]
+    keywords: ["sync", "lost data", "missing data", "backup", "restore", "import", "export", "\u540C\u6B65", "\u6570\u636E\u4E22\u5931", "\u5907\u4EFD", "\u6062\u590D", "\u5BFC\u5165", "\u5BFC\u51FA", "synchron", "synchronisierung", "hochladen", "herunterladen", "upload funktioniert nicht", "uploads werden abgebrochen", "download funktioniert nicht", "datenverlust", "daten weg", "dateien weg", "gel\xF6scht", "verschwunden", "wiederherstellen", "\xFCbertragung", "migrieren", "ger\xE4te\xFCbergreifend", "offline", "sauvegarde", "sincron", "copia de seguridad", "\u540C\u671F", "\u30C7\u30FC\u30BF\u6D88\u5931", "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7"]
   },
   {
     id: "notifications",
     label: "Notifications and reminders",
     description: "Notification delivery, reminder timing, and interruptions",
     intent: "problem",
-    keywords: ["notification", "notify", "reminder", "alert", "\u901A\u77E5", "\u63D0\u9192", "\u63A8\u9001", "benachrichtigung", "erinnerung", "notificaci\xF3n", "recordatorio", "\u30EA\u30DE\u30A4\u30F3\u30C0\u30FC"]
+    keywords: ["notification", "notify", "reminder", "alert", "\u901A\u77E5", "\u63D0\u9192", "\u63A8\u9001", "benachrichtigung", "benachrichtigungen", "push", "erinnerung kommt nicht", "erinnerungen kommen nicht", "keine erinnerung", "benachrichtigung kommt nicht an", "benachrichtigungen kommen nicht an", "push kommt nicht an", "push nicht zugestellt", "notificaci\xF3n", "recordatorio", "\u30EA\u30DE\u30A4\u30F3\u30C0\u30FC"]
   },
   {
     id: "usability",
     label: "Usability and interface",
     description: "Navigation, discoverability, readability, and interaction paths",
     intent: "problem",
-    keywords: ["confusing", "hard to use", "difficult to use", "interface", "ui", "navigation", "can't find", "\u627E\u4E0D\u5230", "\u96BE\u7528", "\u754C\u9762", "\u64CD\u4F5C", "\u5BFC\u822A", "\u590D\u6742", "verwirrend", "schwer zu bedienen", "difficile", "confuso", "dif\xEDcil de usar", "\u4F7F\u3044\u306B\u304F\u3044", "\u5206\u304B\u308A\u306B\u304F\u3044"]
+    keywords: ["confusing", "hard to use", "difficult to use", "interface", "ui", "navigation", "can't find", "\u627E\u4E0D\u5230", "\u96BE\u7528", "\u754C\u9762", "\u64CD\u4F5C", "\u5BFC\u822A", "\u590D\u6742", "verwirrend", "schwer zu bedienen", "un\xFCbersichtlich", "umst\xE4ndlich", "kompliziert", "nicht intuitiv", "bedienung", "handhabung", "einstellung nicht finden", "finde die einstellung nicht", "finde keine einstellung", "men\xFC nicht finden", "finde das men\xFC nicht", "finde keine option", "versteckt", "zu viele klicks", "difficile", "confuso", "dif\xEDcil de usar", "\u4F7F\u3044\u306B\u304F\u3044", "\u5206\u304B\u308A\u306B\u304F\u3044"]
   },
   {
     id: "feature-request",
     label: "Feature requests",
     description: "Explicit requests for additions or improvements",
     intent: "request",
-    keywords: ["please add", "wish", "would love", "need a", "feature", "can you", "could you", "\u5E0C\u671B", "\u5EFA\u8BAE\u589E\u52A0", "\u80FD\u4E0D\u80FD", "\u8BF7\u6DFB\u52A0", "\u529F\u80FD", "\u9700\u8981\u652F\u6301", "bitte hinzuf\xFCgen", "w\xE4re sch\xF6n", "veuillez ajouter", "por favor a\xF1adan", "me gustar\xEDa", "\u8FFD\u52A0\u3057\u3066", "\u6B32\u3057\u3044", "\u6A5F\u80FD"]
+    keywords: ["please add", "wish", "would love", "need a", "feature", "can you", "could you", "\u5E0C\u671B", "\u5EFA\u8BAE\u589E\u52A0", "\u80FD\u4E0D\u80FD", "\u8BF7\u6DFB\u52A0", "\u529F\u80FD", "\u9700\u8981\u652F\u6301", "bitte hinzuf\xFCgen", "bitte erg\xE4nzen", "bitte einbauen", "w\xE4re sch\xF6n", "mir fehlt eine", "mir fehlt ein", "vermisse", "w\xFCnsche mir", "option fehlt", "finde keine option", "veuillez ajouter", "por favor a\xF1adan", "me gustar\xEDa", "\u8FFD\u52A0\u3057\u3066", "\u6B32\u3057\u3044", "\u6A5F\u80FD"]
   },
   {
     id: "privacy",
-    label: "Privacy and permissions",
-    description: "Privacy, tracking, permissions, and data usage",
+    label: "Privacy, security, and permissions",
+    description: "Privacy, tracking, permissions, account compromise, and data usage",
     intent: "problem",
-    keywords: ["privacy", "tracking", "permission", "data collection", "secure", "\u9690\u79C1", "\u8FFD\u8E2A", "\u6743\u9650", "\u6570\u636E\u6536\u96C6", "\u5B89\u5168", "datenschutz", "berechtigung", "confidentialit\xE9", "privacidad", "permiso", "\u30D7\u30E9\u30A4\u30D0\u30B7\u30FC", "\u6A29\u9650"]
+    keywords: ["privacy", "tracking", "permission", "data collection", "secure", "\u9690\u79C1", "\u8FFD\u8E2A", "\u6743\u9650", "\u6570\u636E\u6536\u96C6", "\u5B89\u5168", "datenschutz", "unn\xF6tige berechtigung", "unn\xF6tige berechtigungen", "erzwingt berechtigungen", "berechtigung verlangt", "berechtigungen verlangt", "daten werden gesammelt", "daten sammelt", "\xFCberwachung", "getrackt", "sicherheitsrisiko", "datenmissbrauch", "gehackt", "spioniert", "confidentialit\xE9", "privacidad", "permiso", "\u30D7\u30E9\u30A4\u30D0\u30B7\u30FC", "\u6A29\u9650"]
   }
 ];
+var REQUESTABLE_THEME_KEYWORDS = /* @__PURE__ */ new Map([
+  ["sync", /* @__PURE__ */ new Set(["sync", "backup", "restore", "import", "export", "\u540C\u6B65", "\u5907\u4EFD", "\u6062\u590D", "\u5BFC\u5165", "\u5BFC\u51FA", "synchron", "synchronisierung", "offline", "sauvegarde", "sincron", "copia de seguridad", "\u540C\u671F", "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7"])],
+  ["notifications", /* @__PURE__ */ new Set(["notification", "notify", "reminder", "alert", "\u901A\u77E5", "\u63D0\u9192", "\u63A8\u9001", "benachrichtigung", "benachrichtigungen", "push", "notificaci\xF3n", "recordatorio", "\u30EA\u30DE\u30A4\u30F3\u30C0\u30FC"])]
+]);
 var STOP_WORDS2 = /* @__PURE__ */ new Set([
   "the",
   "and",
@@ -414,6 +477,63 @@ var STOP_WORDS2 = /* @__PURE__ */ new Set([
   "love",
   "want",
   "need",
+  "der",
+  "die",
+  "das",
+  "den",
+  "dem",
+  "des",
+  "ein",
+  "eine",
+  "einer",
+  "einem",
+  "einen",
+  "und",
+  "oder",
+  "aber",
+  "auch",
+  "ist",
+  "sind",
+  "war",
+  "waren",
+  "wird",
+  "werden",
+  "mit",
+  "ohne",
+  "f\xFCr",
+  "von",
+  "vom",
+  "im",
+  "in",
+  "auf",
+  "aus",
+  "zu",
+  "zur",
+  "zum",
+  "ich",
+  "mir",
+  "mich",
+  "mein",
+  "meine",
+  "man",
+  "wenn",
+  "seit",
+  "nach",
+  "noch",
+  "mehr",
+  "sehr",
+  "nicht",
+  "kein",
+  "keine",
+  "nur",
+  "schon",
+  "immer",
+  "wieder",
+  "leider",
+  "eigentlich",
+  "wirklich",
+  "jetzt",
+  "gibt",
   "\u4E00\u4E2A",
   "\u8FD9\u4E2A",
   "\u90A3\u4E2A",
@@ -472,7 +592,7 @@ function classifyReview(review) {
   const haystack = `${review.title} ${review.body}`.toLowerCase();
   return THEME_RULES.map((theme) => {
     const hits = theme.keywords.filter((keyword) => matchesKeyword(haystack, keyword));
-    return hits.length ? { id: theme.id, hits, confidence: Math.min(0.98, 0.56 + hits.length * 0.13) } : null;
+    return hits.length ? { id: theme.id, intent: theme.intent, hits, confidence: Math.min(0.98, 0.56 + hits.length * 0.13) } : null;
   }).filter(Boolean);
 }
 function matchesKeyword(haystack, value) {
@@ -536,8 +656,8 @@ function buildReport({ reviews: reviews2, app: app2, source, generatedAt = (/* @
     methodology: {
       evidenceRule: "Every insight must cite source reviews from the current dataset.",
       recentWindowDays: 30,
-      classifier: "deterministic-keyword-v1",
-      discovery: "deterministic-phrase-mining-v1",
+      classifier: "deterministic-keyword-v2",
+      discovery: "deterministic-phrase-mining-v2",
       caveat: "Public store reviews are a sample; findings represent only the reviews retrieved in this run."
     }
   };
@@ -578,14 +698,28 @@ function buildComparison(primaryReport, competitorReport) {
 }
 function aggregateTheme(rule, reviews2, recentStart, previousStart) {
   const matched = reviews2.map((review) => ({ review, matches: classifyReview(review) })).filter(({ matches }) => matches.some((match) => match.id === rule.id));
+  const lowRated = matched.filter(({ review }) => review.rating <= 3);
+  const requestOverlaps = rule.intent === "problem" ? lowRated.filter(({ matches }) => isRequestOnlyThemeMatch(matches, rule.id)) : [];
+  const requestOverlapReviews = new Set(requestOverlaps.map(({ review }) => review));
+  const complaints = lowRated.filter(({ review }) => !requestOverlapReviews.has(review));
   const recent = matched.filter(({ review }) => Date.parse(review.createdAt) >= recentStart).length;
   const previous = matched.filter(({ review }) => {
     const time3 = Date.parse(review.createdAt);
     return time3 >= previousStart && time3 < recentStart;
   }).length;
+  const recentComplaints = complaints.filter(({ review }) => Date.parse(review.createdAt) >= recentStart).length;
+  const previousComplaints = complaints.filter(({ review }) => {
+    const time3 = Date.parse(review.createdAt);
+    return time3 >= previousStart && time3 < recentStart;
+  }).length;
   const avgRating = round2(mean2(matched.map(({ review }) => review.rating)), 2);
+  const complaintAverageRating = round2(mean2(complaints.map(({ review }) => review.rating)), 2);
   const evidence = matched.sort((a, b) => evidenceScore2(b.review) - evidenceScore2(a.review)).slice(0, 4).map(({ review }) => evidenceRef2(review));
+  const complaintEvidence = complaints.sort((a, b) => evidenceScore2(b.review) - evidenceScore2(a.review)).slice(0, 4).map(({ review }) => evidenceRef2(review));
   const trendPercent = previous === 0 ? recent > 0 ? 100 : 0 : Math.round((recent - previous) / previous * 100);
+  const complaintTrendPercent = previousComplaints === 0 ? recentComplaints > 0 ? 100 : 0 : Math.round((recentComplaints - previousComplaints) / previousComplaints * 100);
+  const priorityItems = rule.intent === "request" ? matched.length : complaints.length;
+  const priorityRating = rule.intent === "request" ? avgRating : complaintAverageRating;
   return {
     id: rule.id,
     label: rule.label,
@@ -594,11 +728,19 @@ function aggregateTheme(rule, reviews2, recentStart, previousStart) {
     count: matched.length,
     share: reviews2.length ? round2(matched.length / reviews2.length, 3) : 0,
     averageRating: avgRating,
-    negativeCount: matched.filter(({ review }) => review.rating <= 2).length,
+    negativeCount: complaints.filter(({ review }) => review.rating <= 2).length,
+    complaintCount: complaints.length,
+    complaintShare: reviews2.length ? round2(complaints.length / reviews2.length, 3) : 0,
+    complaintAverageRating,
+    requestOverlapCount: requestOverlaps.length,
     recentCount: recent,
     previousCount: previous,
     trendPercent,
-    priorityScore: round2(matched.length * (6 - (avgRating || 3)) * (1 + Math.max(0, trendPercent) / 200), 1),
+    recentComplaintCount: recentComplaints,
+    previousComplaintCount: previousComplaints,
+    complaintTrendPercent,
+    priorityScore: round2(priorityItems * (6 - (priorityRating || 3)) * (1 + Math.max(0, rule.intent === "request" ? trendPercent : complaintTrendPercent) / 200), 1),
+    complaintEvidence,
     evidence
   };
 }
@@ -612,20 +754,25 @@ function aggregateVersions2(reviews2) {
   }
   return [...groups.entries()].map(([version2, items]) => {
     const sorted = [...items].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+    const classified = items.map((review) => ({ review, matches: classifyReview(review) }));
     const themeSignals = THEME_RULES.map((rule) => {
-      const matched = items.filter((review) => classifyReview(review).some((match) => match.id === rule.id));
-      const complaints = matched.filter((review) => review.rating <= 3);
+      const matched = classified.filter(({ matches }) => matches.some((match) => match.id === rule.id));
+      const lowRated = matched.filter(({ review }) => review.rating <= 3);
+      const requestOverlaps = rule.intent === "problem" ? lowRated.filter(({ matches }) => isRequestOnlyThemeMatch(matches, rule.id)) : [];
+      const requestOverlapReviews = new Set(requestOverlaps.map(({ review }) => review));
+      const complaints = lowRated.filter(({ review }) => !requestOverlapReviews.has(review));
       return {
         id: rule.id,
         label: rule.label,
         intent: rule.intent,
         count: matched.length,
         share: round2(matched.length / items.length, 3),
-        negativeCount: matched.filter((review) => review.rating <= 2).length,
+        negativeCount: matched.filter(({ review }) => review.rating <= 2).length,
         complaintCount: complaints.length,
         complaintShare: round2(complaints.length / items.length, 3),
-        complaintEvidence: complaints.sort((a, b) => evidenceScore2(b) - evidenceScore2(a)).slice(0, 3).map(evidenceRef2),
-        evidence: matched.sort((a, b) => evidenceScore2(b) - evidenceScore2(a)).slice(0, 3).map(evidenceRef2)
+        requestOverlapCount: requestOverlaps.length,
+        complaintEvidence: complaints.map(({ review }) => review).sort((a, b) => evidenceScore2(b) - evidenceScore2(a)).slice(0, 3).map(evidenceRef2),
+        evidence: matched.map(({ review }) => review).sort((a, b) => evidenceScore2(b) - evidenceScore2(a)).slice(0, 3).map(evidenceRef2)
       };
     }).filter((theme) => theme.count > 0).sort((a, b) => b.count - a.count);
     return {
@@ -649,6 +796,12 @@ function compareVersionIdentifiers(left, right) {
     if (difference) return difference;
   }
   return 0;
+}
+function isRequestOnlyThemeMatch(matches, themeId) {
+  if (!matches.some((match) => match.intent === "request")) return false;
+  const requestable = REQUESTABLE_THEME_KEYWORDS.get(themeId);
+  const theme = matches.find((match) => match.id === themeId);
+  return Boolean(requestable && theme?.hits.length && theme.hits.every((hit) => requestable.has(hit)));
 }
 function aggregateTimeline(reviews2) {
   const groups = /* @__PURE__ */ new Map();
@@ -686,28 +839,28 @@ function extractKeywords(reviews2, excluded = /* @__PURE__ */ new Set()) {
 }
 function buildInsights(themes, versions, reviews2) {
   const results = [];
-  const growing = themes.find((theme) => theme.recentCount >= 2 && theme.trendPercent > 20);
+  const growing = themes.find((theme) => theme.intent === "problem" && theme.recentComplaintCount >= 2 && theme.complaintTrendPercent > 20);
   if (growing) {
     results.push({
       id: `trend-${growing.id}`,
       kind: "emerging",
-      severity: growing.averageRating <= 2.2 ? "high" : "medium",
+      severity: growing.complaintAverageRating <= 2.2 ? "high" : "medium",
       title: `${growing.label} is increasing`,
-      statement: `${growing.recentCount} matching reviews appeared in the recent window, a ${formatPercent(growing.trendPercent)} change from the previous window.`,
+      statement: `${growing.recentComplaintCount} complaint reviews appeared in the recent window, a ${formatPercent(growing.complaintTrendPercent)} change from the previous window.`,
       recommendation: "Reproduce the shared paths in the evidence first, then connect fixes to the next release.",
-      evidence: growing.evidence
+      evidence: growing.complaintEvidence
     });
   }
-  const painful = themes.find((theme) => theme.negativeCount >= 2);
+  const painful = themes.find((theme) => theme.intent === "problem" && theme.negativeCount >= 2);
   if (painful) {
     results.push({
       id: `pain-${painful.id}`,
       kind: "pain",
-      severity: painful.negativeCount >= Math.max(4, painful.count * 0.6) ? "high" : "medium",
+      severity: painful.negativeCount >= Math.max(4, painful.complaintCount * 0.6) ? "high" : "medium",
       title: `${painful.label} is the most concentrated pain point`,
-      statement: `${painful.negativeCount} of ${painful.count} matching reviews are one or two stars, with an average rating of ${painful.averageRating || "n/a"}.`,
+      statement: `${painful.negativeCount} of ${painful.complaintCount} complaint reviews are one or two stars, with an average rating of ${painful.complaintAverageRating || "n/a"}.`,
       recommendation: "Rank reproduction paths from the source reviews and fix the broadest, lowest-rated root cause first.",
-      evidence: painful.evidence
+      evidence: painful.complaintEvidence
     });
   }
   const regressed = versions.find((version2) => version2.count >= 3 && version2.averageRating <= 2.8);
@@ -842,7 +995,7 @@ function validateConnector(connector) {
 }
 
 // src/version.js
-var VERSION = "0.5.6";
+var VERSION = "0.5.7";
 
 // src/connectors/errors.js
 var ConnectorError = class extends Error {

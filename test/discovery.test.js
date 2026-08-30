@@ -28,9 +28,9 @@ test("discovers repeated low-rating language outside the fixed taxonomy", () => 
 
 test("adds discovered issues to an evidence report", () => {
   const reviews = [
-    review("a", "Camera uploads rotate every portrait photo sideways after saving.", 1),
-    review("b", "Every camera upload rotates my portrait photo sideways.", 2),
-    review("c", "A saved portrait photo is sideways after camera upload.", 2)
+    review("a", "Portrait photos rotate sideways after saving.", 1),
+    review("b", "Every portrait photo rotates sideways after saving.", 2),
+    review("c", "A saved portrait photo is always sideways.", 2)
   ];
   const report = buildReport({
     reviews,
@@ -38,7 +38,18 @@ test("adds discovered issues to an evidence report", () => {
     app: { id: base.appId, name: "Camera", store: "google-play", url: "https://example.com" }
   });
   assert.ok(report.discoveredIssues.length > 0);
-  assert.equal(report.methodology.discovery, "deterministic-phrase-mining-v1");
+  assert.equal(report.methodology.discovery, "deterministic-phrase-mining-v2");
+});
+
+test("discovers specific German complaint phrases instead of stop-word noise", () => {
+  const reviews = [
+    review("e", "Das Hörbuch springt nach wenigen Minuten zurück zum Anfang.", 1),
+    review("f", "Mein Hörbuch springt mitten im Kapitel zurück zum Anfang.", 2),
+    review("g", "Jedes Hörbuch springt ohne Grund zurück zum Anfang.", 2)
+  ].map((item) => ({ ...item, language: "de", country: "DE" }));
+  const issues = discoverIssues(reviews, { totalReviews: reviews.length });
+  assert.ok(issues.some((issue) => /hörbuch|springt|anfang/i.test(issue.label)));
+  assert.ok(issues.every((issue) => !/^(die|das|der|zum|zur)\b/i.test(issue.label)));
 });
 
 function review(reviewId, body, rating) {

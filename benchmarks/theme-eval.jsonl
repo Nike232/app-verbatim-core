@@ -43,3 +43,42 @@
 {"id":"none-de","language":"de","text":"Ich benutze es jeden Tag und bin zufrieden.","labels":[]}
 {"id":"none-es","language":"es","text":"Todo funciona bien y me gusta el diseño.","labels":[]}
 {"id":"none-ja","language":"ja","text":"毎日便利に使っています。","labels":[]}
+{"id":"stability-de-1","language":"de","text":"Seit dem Update hängt sich die Anwendung beim Start auf.","labels":["stability"]}
+{"id":"stability-de-2","language":"de","text":"Die App funktioniert nicht mehr und lässt sich nicht öffnen.","labels":["stability"]}
+{"id":"stability-de-3","language":"de","text":"Nach wenigen Minuten friert alles ein.","labels":["stability"]}
+{"id":"performance-de-2","language":"de","text":"Beim Scrollen ruckelt alles und reagiert sehr träge.","labels":["performance"]}
+{"id":"performance-de-3","language":"de","text":"Die Wiedergabe stockt und die nächste Seite lädt ewig.","labels":["performance"]}
+{"id":"performance-de-4","language":"de","text":"Die Anwendung verbraucht viel Akku und das Telefon wird heiß.","labels":["performance"]}
+{"id":"pricing-de-1","language":"de","text":"Das Abo ist inzwischen viel zu teuer.","labels":["pricing"]}
+{"id":"pricing-de-2","language":"de","text":"Trotz Bezahlung erscheint überall Werbung.","labels":["pricing"]}
+{"id":"pricing-de-3","language":"de","text":"Meine Kündigung wird nicht akzeptiert.","labels":["pricing"]}
+{"id":"pricing-de-4","language":"de","text":"Für jede kleine Erweiterung entstehen Extrakosten.","labels":["pricing"]}
+{"id":"account-de-1","language":"de","text":"Die Anmeldung scheitert jedes Mal.","labels":["account"]}
+{"id":"account-de-2","language":"de","text":"Mein Passwort wird nicht angenommen und ich kann mich nicht einloggen.","labels":["account"]}
+{"id":"account-de-3","language":"de","text":"Die Registrierung bleibt beim Bestätigungscode stehen.","labels":["account"]}
+{"id":"account-de-4","language":"de","text":"Nach dem Gerätewechsel habe ich keinen Zugang zu meinem Konto.","labels":["account"]}
+{"id":"sync-de-1","language":"de","text":"Fotos lassen sich weder hochladen noch herunterladen.","labels":["sync"]}
+{"id":"sync-de-2","language":"de","text":"Nach der Synchronisierung sind meine Daten weg.","labels":["sync"]}
+{"id":"sync-de-3","language":"de","text":"Mehrere Dateien wurden ohne Warnung gelöscht.","labels":["sync"]}
+{"id":"sync-de-4","language":"de","text":"Die Übertragung auf das neue Gerät ist mehrfach gescheitert.","labels":["sync"]}
+{"id":"notifications-de-2","language":"de","text":"Benachrichtigungen werden seit Tagen nicht angezeigt.","labels":["notifications"]}
+{"id":"notifications-de-3","language":"de","text":"Meine Erinnerungen kommen nicht an.","labels":["notifications"]}
+{"id":"notifications-de-4","language":"de","text":"Der Push wird häufig nicht zugestellt.","labels":["notifications"]}
+{"id":"usability-de-2","language":"de","text":"Die neue Oberfläche ist unübersichtlich und kompliziert.","labels":["usability"]}
+{"id":"usability-de-3","language":"de","text":"Die Bedienung ist umständlich und nicht intuitiv.","labels":["usability"]}
+{"id":"usability-de-4","language":"de","text":"Wichtige Einstellungen kann ich im Menü nicht finden.","labels":["usability"]}
+{"id":"request-de-1","language":"de","text":"Mir fehlt eine Wochenansicht.","labels":["feature-request"]}
+{"id":"request-de-2","language":"de","text":"Ich vermisse einen kompakten Modus.","labels":["feature-request"]}
+{"id":"request-de-3","language":"de","text":"Ich wünsche mir frei wählbare Farben.","labels":["feature-request"]}
+{"id":"request-de-4","language":"de","text":"Bitte ergänzen Sie einen Dunkelmodus.","labels":["feature-request"]}
+{"id":"privacy-de-1","language":"de","text":"Die Anwendung verlangt unnötige Berechtigungen und verletzt den Datenschutz.","labels":["privacy"]}
+{"id":"privacy-de-2","language":"de","text":"Meine Daten werden gesammelt und für Tracking verwendet.","labels":["privacy"]}
+{"id":"privacy-de-3","language":"de","text":"Diese Voreinstellung ist ein erhebliches Sicherheitsrisiko.","labels":["privacy"]}
+{"id":"privacy-de-4","language":"de","text":"Die Anwendung spioniert ihre Nutzer im Hintergrund aus.","labels":["privacy"]}
+{"id":"multi-de-1","language":"de","text":"Nach der Anmeldung stürzt die App sofort ab.","labels":["stability","account"]}
+{"id":"multi-de-2","language":"de","text":"Die Synchronisierung ist langsam und verbraucht zu viel Akku.","labels":["performance","sync"]}
+{"id":"multi-de-3","language":"de","text":"Obwohl ich das Abo gekündigt habe, komme ich nicht mehr in mein Konto.","labels":["pricing","account"]}
+{"id":"none-de-2","language":"de","text":"Die Farben gefallen mir ausgesprochen gut.","labels":[]}
+{"id":"none-de-3","language":"de","text":"Ein hilfreiches Werkzeug für meinen Alltag.","labels":[]}
+{"id":"none-de-4","language":"de","text":"Alles läuft rund und macht einen soliden Eindruck.","labels":[]}
+{"id":"none-de-5","language":"de","text":"Der Einstieg war problemlos und schnell erledigt.","labels":[]}

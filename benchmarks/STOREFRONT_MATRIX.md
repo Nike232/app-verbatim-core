@@ -48,3 +48,25 @@ Both failures were identical in both runs: Bitwarden and Discord on Google Play'
 Known-theme coverage among current-version one- to three-star reviews was `38.1%` and `37.2%` overall. US English coverage was `40.4%` and `39.4%`, while German coverage was `20.9%` in both runs. This is a lower-bound coverage measure for the fixed taxonomy; repeated phrases outside it can still appear under discovered issues. The language gap is evidence for future taxonomy work, not a reason to weaken the release thresholds.
 
 The lower final decision rate is deliberate: uncertain Apple samples are now rejected instead of being allowed to produce unstable release conclusions.
+
+## German calibration follow-up: 2026-08-30
+
+The German gap above was addressed with high-precision German complaint phrases, German stop words for unknown-issue discovery, and a 43-example German benchmark protected by committed per-language precision, recall, and exact-match thresholds. Explicit requests for requestable capabilities are now excluded from overlapping problem-theme gates, while mixed reviews that independently describe a failure remain complaint evidence.
+
+A same-sample shadow comparison over 44 current-version German complaints matched 9 reviews (`20.5%`) with the v0.5.6 rules and 17 (`38.6%`) with the calibrated rules. Broad phrases that produced ambiguous matches during manual review, including generic equivalents of “does not go” and “unusable,” were removed before the final runs.
+
+Two consecutive full matrix runs then produced identical results:
+
+| Measure | Run A | Run B |
+| --- | ---: | ---: |
+| Completed cases | 40 | 40 |
+| Decidable | 15 | 15 |
+| Pass | 12 | 12 |
+| Fail | 3 | 3 |
+| Insufficient data | 25 | 25 |
+| German complaint-theme coverage | 17 / 44 (`38.6%`) | 17 / 44 (`38.6%`) |
+| US English complaint-theme coverage | 134 / 325 (`41.2%`) | 134 / 325 (`41.2%`) |
+
+The same three cases failed in both runs: Bitwarden on Google Play US, Signal on Apple US, and Discord on Google Play US. Every failure was backed by both rating-drop and low-rating-share signals; no known-theme or discovered-issue rule created a new failure. Signal's current-version evidence was manually checked and contained low-rating reports about data loss and account-safety concerns, but store reviews still show correlation rather than proving that a specific release caused those reports.
+
+All 40 cases completed without connector errors or partial-source decisions in these two runs. That improved source availability is an upstream snapshot, not a guarantee that Apple pagination will remain complete; the fail-safe source check remains necessary.
