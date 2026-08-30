@@ -85,14 +85,60 @@ export interface Insight {
   evidence: Evidence[];
 }
 
+export type ThemeIntent = "problem" | "request";
+
+export interface ThemeMatch {
+  id: string;
+  intent: ThemeIntent;
+  hits: string[];
+  confidence: number;
+}
+
 export interface ThemeSummary {
   id: string;
   label: string;
+  description: string;
+  intent: ThemeIntent;
   count: number;
   share: number;
   negativeCount: number;
   averageRating: number;
+  complaintCount: number;
+  complaintShare: number;
+  complaintAverageRating: number;
+  requestOverlapCount: number;
+  recentCount: number;
+  previousCount: number;
   trendPercent: number;
+  recentComplaintCount: number;
+  previousComplaintCount: number;
+  complaintTrendPercent: number;
+  priorityScore: number;
+  complaintEvidence: Evidence[];
+  evidence: Evidence[];
+}
+
+export interface VersionThemeSignal {
+  id: string;
+  label: string;
+  intent: ThemeIntent;
+  count: number;
+  share: number;
+  negativeCount: number;
+  complaintCount: number;
+  complaintShare: number;
+  requestOverlapCount: number;
+  complaintEvidence: Evidence[];
+  evidence: Evidence[];
+}
+
+export interface VersionSummary {
+  version: string;
+  count: number;
+  averageRating: number;
+  negativeShare: number;
+  lastSeenAt: string;
+  themeSignals: VersionThemeSignal[];
   evidence: Evidence[];
 }
 
@@ -113,7 +159,7 @@ export interface Report {
   ratingDistribution: Array<{ rating: number; count: number }>;
   timeline: Array<{ period: string; count: number; averageRating: number; negativeCount: number }>;
   themes: ThemeSummary[];
-  versions: Array<Record<string, unknown>>;
+  versions: VersionSummary[];
   keywords: Array<Record<string, unknown>>;
   discoveredIssues: Array<Record<string, any>>;
   insights: Insight[];
@@ -184,7 +230,13 @@ export interface AnalysisResult {
 }
 
 export const VERSION: string;
-export const THEME_RULES: ReadonlyArray<Record<string, any>>;
+export const THEME_RULES: ReadonlyArray<{
+  id: string;
+  label: string;
+  description: string;
+  intent: ThemeIntent;
+  keywords: readonly string[];
+}>;
 
 export class UnsupportedStoreUrlError extends Error {
   input: unknown;
@@ -212,7 +264,7 @@ export function createDefaultRegistry(options?: { includeDemo?: boolean }): Conn
 export function parseSourceRef(input: string): SourceRef;
 export function normalizeReview(review: Partial<Review> & Pick<Review, "source" | "appId" | "reviewId" | "body" | "rating" | "createdAt">): Review;
 export function deduplicateReviews(reviews: Review[]): Review[];
-export function classifyReview(review: Pick<Review, "title" | "body">): Array<Record<string, any>>;
+export function classifyReview(review: Pick<Review, "title" | "body">): ThemeMatch[];
 export function discoverIssues(reviews: Review[], options?: { totalReviews?: number; anchor?: number; limit?: number }): Array<Record<string, any>>;
 export function buildReport(input: { reviews: Review[]; app: AppMetadata; source: SourceRef; generatedAt?: string; aiSummary?: unknown }): Report;
 export function buildComparison(primary: Report, competitor: Report): Record<string, any>;

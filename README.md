@@ -33,7 +33,7 @@ Current 4.8.0       Baseline 4.7.2       Change
 
 🔴 Average rating dropped by 1.34
 🔴 Low-rating share increased by 44%
-🟠 Stability and crashes complaints increased by 26%
+🟠 Stability and failures complaints increased by 26%
 🔴 New complaint fingerprint: camera uploads
 ```
 
@@ -58,7 +58,7 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.6` to pin an immutable release.
+It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.7` to pin an immutable release.
 
 The recommended command starts in observe-only mode: regressions and evidence still appear, but the workflow stays green while you learn the app's normal review volume. Remove the generated `fail-on-regression: false` line when the policy fits; omit `--observe-only` only when you intentionally want enforcement from the first run.
 
@@ -116,7 +116,7 @@ The server uses stdio, writes no local state, and requires no model-provider key
 
 | Capability | What App Verbatim does |
 | --- | --- |
-| Release regression gate | Evaluates the actual newest version against a sufficiently sampled earlier baseline; under-sampled newest releases remain explicitly inconclusive, positive theme mentions cannot fail a release, and feature demand remains advisory. |
+| Release regression gate | Evaluates the actual newest version against a sufficiently sampled earlier baseline; under-sampled newest releases remain explicitly inconclusive, positive theme mentions cannot fail a release, and explicit capability requests remain advisory even when they overlap a problem category. |
 | Evidence, not summaries | Rating drops, low-rating spikes, and theme changes retain representative source reviews. |
 | Unknown-problem discovery | Deterministic phrase mining surfaces repeated low-rating language not covered by predefined categories. |
 | Reproducible runs | Normalized datasets receive SHA-256 content hashes; the default engine is local and deterministic, and partial upstream pages are rejected before they can change a release conclusion. |
@@ -182,7 +182,7 @@ Custom review sources implement only `supports()` and `fetch()`. Start with the 
 npm run check
 ```
 
-That command verifies syntax and public types, runs offline unit/CLI tests, executes the six-language theme benchmark, validates both live-cohort manifests without network access, performs a real MCP stdio handshake and tool call, generates the offline demo, smoke-tests the bundled GitHub Action, and installs the packed npm artifact into a clean consumer project.
+That command verifies syntax and public types, runs offline unit/CLI tests, executes the six-language theme benchmark and its per-language quality gates, validates both live-cohort manifests without network access, performs a real MCP stdio handshake and tool call, generates the offline demo, smoke-tests the bundled GitHub Action, and installs the packed npm artifact into a clean consumer project.
 
 The small benchmark is committed at [benchmarks/theme-eval.jsonl](benchmarks/theme-eval.jsonl); its scope and limitations are documented in [benchmarks/README.md](benchmarks/README.md). A separate [20-app real-store cohort](benchmarks/RELEASE_COHORT.md) measures whether the release policy can reach a decision, while the [40-case cross-storefront matrix](benchmarks/STOREFRONT_MATRIX.md) challenges Apple and Google behavior in US English and German storefronts. Both record aggregate-only human adjudication. Live store contracts run separately because upstream stores can rate-limit CI:
 

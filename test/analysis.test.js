@@ -42,8 +42,47 @@ test("builds evidence-backed themes and insights", () => {
   assert.equal(currentStability.intent, "problem");
   assert.equal(currentStability.complaintCount, 3);
   assert.equal(currentStability.complaintShare, 1);
+  assert.equal(currentStability.requestOverlapCount, 0);
   assert.ok(currentStability.complaintEvidence.every((item) => item.rating <= 3));
   assert.equal(previousRequest.complaintCount, 0);
+});
+
+test("keeps explicit requests out of overlapping problem-theme gates", () => {
+  const report = buildReport({
+    reviews: [
+      {
+        ...base,
+        reviewId: "request",
+        body: "Bitte ergänzen Sie einen Offline-Modus.",
+        rating: 2,
+        appVersion: "2.0",
+        language: "de",
+        country: "DE",
+        createdAt: "2026-08-20"
+      },
+      {
+        ...base,
+        reviewId: "mixed",
+        body: "The app crashes every time. Would love better filters too.",
+        rating: 1,
+        appVersion: "2.0",
+        createdAt: "2026-08-19"
+      }
+    ],
+    source: { store: "google-play" },
+    app: { id: base.appId, name: "Example", store: "google-play", url: "https://example.com" }
+  });
+  const signals = new Map(report.versions[0].themeSignals.map((item) => [item.id, item]));
+  const themes = new Map(report.themes.map((item) => [item.id, item]));
+  assert.equal(signals.get("sync").complaintCount, 0);
+  assert.equal(signals.get("sync").requestOverlapCount, 1);
+  assert.equal(signals.get("stability").complaintCount, 1);
+  assert.equal(signals.get("stability").requestOverlapCount, 0);
+  assert.equal(signals.get("feature-request").complaintCount, 2);
+  assert.equal(themes.get("sync").complaintCount, 0);
+  assert.equal(themes.get("sync").requestOverlapCount, 1);
+  assert.equal(themes.get("stability").complaintCount, 1);
+  assert.ok(themes.get("stability").complaintEvidence.every((item) => item.reviewId === "mixed"));
 });
 
 test("classifies common non-English review language", async () => {
@@ -51,6 +90,16 @@ test("classifies common non-English review language", async () => {
   const matches = classifyReview({ title: "", body: "アップデート後にクラッシュしてログインできない" });
   assert.ok(matches.some((match) => match.id === "stability"));
   assert.ok(matches.some((match) => match.id === "account"));
+});
+
+test("classifies German complaint language without broad substring matches", async () => {
+  const { classifyReview } = await import("../src/index.js");
+  const complaint = classifyReview({
+    title: "",
+    body: "Seit dem Update hängt sich die App auf, die Anmeldung funktioniert nicht und Benachrichtigungen kommen nicht an."
+  });
+  assert.deepEqual(new Set(complaint.map((match) => match.id)), new Set(["stability", "account", "notifications"]));
+  assert.equal(classifyReview({ title: "", body: "Die Gestaltung ist klar und angenehm." }).length, 0);
 });
 
 test("matches common inflections without substring false positives", async () => {

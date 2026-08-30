@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 const DAY_MS = 86_400_000;
 const STOP_WORDS = new Set([
   "app", "application", "after", "again", "also", "and", "are", "because", "before", "been", "being", "but", "can", "could", "did", "does", "every", "for", "from", "had", "has", "have", "into", "its", "it's", "just", "like", "more", "not", "only", "please", "really", "since", "still", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this", "too", "use", "used", "using", "very", "want", "was", "were", "what", "when", "where", "which", "with", "work", "would", "your", "update", "version",
+  "der", "die", "das", "den", "dem", "des", "ein", "eine", "einer", "einem", "einen", "und", "oder", "aber", "auch", "ist", "sind", "war", "waren", "wird", "werden", "mit", "ohne", "für", "von", "vom", "im", "in", "auf", "aus", "zu", "zur", "zum", "ich", "mir", "mich", "mein", "meine", "man", "wenn", "seit", "nach", "noch", "mehr", "sehr", "nicht", "kein", "keine", "nur", "schon", "immer", "wieder", "leider", "eigentlich", "wirklich", "jetzt", "gibt", "update", "version",
   "一个", "这个", "那个", "但是", "就是", "没有", "可以", "非常", "真的", "已经", "现在", "使用", "软件", "应用", "希望", "感觉", "问题"
 ]);
 
