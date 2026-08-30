@@ -1,0 +1,60 @@
+{"id":"software-en-1","language":"en","sourceCase":"discord","text":"After the latest update, voice chat freezes and the app crashes.","label":"software"}
+{"id":"software-en-2","language":"en","sourceCase":"notion","text":"The app says update required, but there is no update available.","label":"software"}
+{"id":"software-en-3","language":"en","sourceCase":"bitwarden","text":"Autofill does not work anymore on the login screen.","label":"software"}
+{"id":"software-en-4","language":"en","sourceCase":"signal","text":"Registration is stuck in a login loop and never completes.","label":"software"}
+{"id":"software-en-5","language":"en","text":"The upload button fails to send any files.","label":"software"}
+{"id":"software-de-1","language":"de","text":"Seit dem Update stürzt die App beim Öffnen ab.","label":"software"}
+{"id":"software-de-2","language":"de","text":"Benachrichtigungen werden nicht zugestellt.","label":"software"}
+{"id":"software-fr-1","language":"fr","text":"L'application plante dès que j'ouvre un document.","label":"software"}
+{"id":"software-es-1","language":"es","text":"La aplicación no funciona y se bloquea al iniciar.","label":"software"}
+{"id":"software-zh-1","language":"zh","text":"更新后一直闪退，消息也发不出去。","label":"software"}
+{"id":"software-ja-1","language":"ja","text":"新しい版ではログインできない。","label":"software"}
+{"id":"software-ja-2","language":"ja","text":"通知が届かないし、起動するとクラッシュする。","label":"software"}
+{"id":"policy-en-1","language":"en","text":"The subscription is too expensive for the features included.","label":"product-policy"}
+{"id":"policy-en-2","language":"en","text":"Age verification should not require a government ID.","label":"product-policy"}
+{"id":"policy-en-3","language":"en","sourceCase":"discord","text":"I dislike the new layout and want the old design back.","label":"product-policy"}
+{"id":"policy-en-4","language":"en","sourceCase":"notion","text":"Please add an offline calendar view.","label":"product-policy"}
+{"id":"policy-en-5","language":"en","text":"They removed a free feature and put it behind a paywall.","label":"product-policy"}
+{"id":"policy-de-1","language":"de","text":"Das Abonnement ist viel zu teuer.","label":"product-policy"}
+{"id":"policy-de-2","language":"de","text":"Die Ausweispflicht zur Identitätsprüfung ist übertrieben.","label":"product-policy"}
+{"id":"policy-fr-1","language":"fr","text":"La fonction supprimée était la seule raison de mon abonnement.","label":"product-policy"}
+{"id":"policy-es-1","language":"es","text":"El nuevo diseño es confuso y tiene demasiados menús.","label":"product-policy"}
+{"id":"policy-zh-1","language":"zh","text":"订阅太贵，而且以前免费的功能现在要付费。","label":"product-policy"}
+{"id":"policy-zh-2","language":"zh","text":"请添加深色模式，这个功能很需要。","label":"product-policy"}
+{"id":"policy-ja-1","language":"ja","text":"本人確認に身分証を求める方針には反対です。","label":"product-policy"}
+{"id":"community-en-1","language":"en","sourceCase":"signal","text":"The service is full of scammers using fake accounts.","label":"community"}
+{"id":"community-en-2","language":"en","sourceCase":"discord","text":"Moderation ignores harassment and abusive users.","label":"community"}
+{"id":"community-en-3","language":"en","text":"My account was suspended for a spam violation I did not commit.","label":"community"}
+{"id":"community-en-4","language":"en","text":"There are bots and catfish profiles everywhere.","label":"community"}
+{"id":"community-de-1","language":"de","text":"Zu viele Betrüger und gefälschte Profile.","label":"community"}
+{"id":"community-de-2","language":"de","text":"Die Moderation reagiert nicht auf Belästigung.","label":"community"}
+{"id":"community-fr-1","language":"fr","text":"Le réseau est rempli de faux profils et d'arnaqueurs.","label":"community"}
+{"id":"community-fr-2","language":"fr","text":"Mon compte a été suspendu sans explication.","label":"community"}
+{"id":"community-es-1","language":"es","text":"Hay demasiados bots y perfiles falsos.","label":"community"}
+{"id":"community-zh-1","language":"zh","text":"平台上骗子和假账号太多，举报也没用。","label":"community"}
+{"id":"community-ja-1","language":"ja","text":"偽アカウントと詐欺が多すぎます。","label":"community"}
+{"id":"community-ja-2","language":"ja","text":"嫌がらせを報告したのに相手は凍結されません。","label":"community"}
+{"id":"support-en-1","language":"en","text":"Customer support never replied to my ticket.","label":"support"}
+{"id":"support-en-2","language":"en","text":"I cannot reach a human through the help desk.","label":"support"}
+{"id":"support-en-3","language":"en","text":"My appeal was ignored by the support team.","label":"support"}
+{"id":"support-en-4","language":"en","text":"Customer service closed the case without answering.","label":"support"}
+{"id":"support-de-1","language":"de","text":"Der Kundendienst antwortet seit Wochen nicht.","label":"support"}
+{"id":"support-de-2","language":"de","text":"Mein Supportticket wurde ohne Antwort geschlossen.","label":"support"}
+{"id":"support-fr-1","language":"fr","text":"Le service client ne répond pas à mon ticket.","label":"support"}
+{"id":"support-fr-2","language":"fr","text":"Aucune réponse du support client depuis un mois.","label":"support"}
+{"id":"support-es-1","language":"es","text":"La atención al cliente no responde.","label":"support"}
+{"id":"support-zh-1","language":"zh","text":"客服一直无人回复，工单也被关闭了。","label":"support"}
+{"id":"support-ja-1","language":"ja","text":"カスタマーサポートから返事がない。","label":"support"}
+{"id":"support-ja-2","language":"ja","text":"サポートチケットを何度送っても返信がない。","label":"support"}
+{"id":"unclear-en-1","language":"en","text":"One star. I do not like it.","label":"unclear"}
+{"id":"unclear-en-2","language":"en","text":"This is disappointing and worse than I expected.","label":"unclear"}
+{"id":"unclear-en-3","language":"en","text":"Not for me.","label":"unclear"}
+{"id":"unclear-en-4","language":"en","text":"Terrible experience with no explanation.","label":"unclear"}
+{"id":"unclear-de-1","language":"de","text":"Ein Stern, gefällt mir nicht.","label":"unclear"}
+{"id":"unclear-de-2","language":"de","text":"Sehr enttäuschend und keine Empfehlung.","label":"unclear"}
+{"id":"unclear-fr-1","language":"fr","text":"Je n'aime pas du tout cette expérience.","label":"unclear"}
+{"id":"unclear-fr-2","language":"fr","text":"Une étoile, très décevant.","label":"unclear"}
+{"id":"unclear-es-1","language":"es","text":"No me gusta nada, una estrella.","label":"unclear"}
+{"id":"unclear-zh-1","language":"zh","text":"一星，不推荐，体验很差。","label":"unclear"}
+{"id":"unclear-ja-1","language":"ja","text":"期待外れでした。おすすめしません。","label":"unclear"}
+{"id":"unclear-ja-2","language":"ja","text":"星一つ。理由を書く気にもなりません。","label":"unclear"}

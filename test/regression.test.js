@@ -186,6 +186,49 @@ test("marks release-link diagnostics unavailable for older report producers", ()
   assert.equal(result.releaseLinkEvidence.level, "unknown");
 });
 
+test("triages a failing outcome gate with repeated version-linked software symptoms", () => {
+  const report = themeReport({
+    intent: "problem",
+    count: 0,
+    share: 0,
+    complaintCount: 0,
+    complaintShare: 0,
+    complaintEvidence: []
+  });
+  report.versions[0].averageRating = 3;
+  report.versions[0].negativeShare = 0.5;
+  report.versions[0].actionabilityEvidence = actionability({ supported: true });
+
+  const result = evaluateRegression(report);
+
+  assert.equal(result.status, "fail");
+  assert.equal(result.triage.decision, "software-regression");
+  assert.equal(result.triage.blocking, true);
+  assert.match(regressionToMarkdown(result), /SOFTWARE REGRESSION/);
+  assert.match(regressionToMarkdown(result), /Repeated version-linked software symptoms/);
+});
+
+test("keeps rating-only failures blocking while routing uncertain causality to manual review", () => {
+  const report = themeReport({
+    intent: "problem",
+    count: 0,
+    share: 0,
+    complaintCount: 0,
+    complaintShare: 0,
+    complaintEvidence: []
+  });
+  report.versions[0].averageRating = 3;
+  report.versions[0].negativeShare = 0.5;
+  report.versions[0].actionabilityEvidence = actionability({ supported: false });
+
+  const result = evaluateRegression(report);
+
+  assert.equal(result.status, "fail");
+  assert.equal(result.triage.decision, "manual-review");
+  assert.equal(result.triage.blocking, true);
+  assert.match(result.summary, /manual review/i);
+});
+
 test("fails on a concentrated low-rated problem theme with complaint-only evidence", () => {
   const evidence = [
     { rating: 1, excerpt: "Crashes on launch." },
@@ -246,5 +289,30 @@ function quietPolicy() {
     maxThemeShareIncrease: 0.18,
     maxDiscoveredIssueShare: 1,
     minThemeReviews: 3
+  };
+}
+
+function actionability({ supported }) {
+  const issue = {
+    id: "software-stability",
+    kind: "known-theme",
+    label: "Stability and failures",
+    count: 3,
+    share: 0.3,
+    releaseLinkedCount: supported ? 2 : 1,
+    explicitReleaseCount: supported ? 1 : 0,
+    supported,
+    evidence: []
+  };
+  return {
+    lowRatingReviewCount: 5,
+    counts: { software: 3, "product-policy": 0, community: 1, support: 0, unclear: 1 },
+    shares: { software: 0.6, "product-policy": 0, community: 0.2, support: 0, unclear: 0.2 },
+    softwareCount: 3,
+    softwareShare: 0.6,
+    releaseLinkedSoftwareCount: supported ? 2 : 1,
+    explicitReleaseSoftwareCount: supported ? 1 : 0,
+    actionableIssues: [issue],
+    evidence: { software: [], "product-policy": [], community: [], support: [], unclear: [] }
   };
 }

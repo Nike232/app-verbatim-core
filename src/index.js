@@ -1,8 +1,10 @@
 export {
   THEME_RULES,
+  REVIEW_SCOPE_CATEGORIES,
   buildComparison,
   buildReport,
   classifyReview,
+  classifyReviewScope,
   deduplicateReviews,
   normalizeReview
 } from "./analysis.js";

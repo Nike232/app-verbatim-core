@@ -34,6 +34,7 @@ try {
   const outputs = await readFile(githubOutput, "utf8");
   assert.match(outputs, /status/);
   assert.match(outputs, /release-link-level/);
+  assert.match(outputs, /triage-decision/);
   console.log("Bundled GitHub Action smoke test passed.");
 } finally {
   await rm(directory, { recursive: true, force: true });

@@ -68,6 +68,8 @@ test("summarizes decision and theme coverage by store and storefront", () => {
   assert.equal(summary.insufficientReasons.current, 1);
   assert.equal(summary.insufficientReasons.source, 0);
   assert.deepEqual(summary.releaseLinkEvidenceLevels, { supported: 0, limited: 0, none: 0, unknown: 3 });
+  assert.deepEqual(summary.reviewScopeCounts, { software: 12, "product-policy": 0, community: 0, support: 0, unclear: 0 });
+  assert.deepEqual(summary.triageDecisions, { "software-regression": 0, "manual-review": 1, observe: 2 });
 });
 
 test("keeps release-link review text out of aggregate cohort reports", () => {
@@ -88,7 +90,15 @@ test("keeps release-link review text out of aggregate cohort reports", () => {
       generatedAt: "2026-08-31T00:00:00.000Z",
       sample: { total: 20 },
       versions: [
-        { version: "2", count: 10, averageRating: 4, negativeShare: 0.1, themeSignals: [], releaseLinkEvidence: releaseLink("secret review text") },
+        {
+          version: "2",
+          count: 10,
+          averageRating: 4,
+          negativeShare: 0.1,
+          themeSignals: [],
+          releaseLinkEvidence: releaseLink("secret review text"),
+          actionabilityEvidence: actionability("secret scope text", "secret symptom label")
+        },
         { version: "1", count: 10, averageRating: 4, negativeShare: 0.1, themeSignals: [], releaseLinkEvidence: releaseLink("older text") }
       ],
       discoveredIssues: []
@@ -98,7 +108,11 @@ test("keeps release-link review text out of aggregate cohort reports", () => {
 
   assert.equal(output.releaseLinkEvidence.level, "limited");
   assert.equal("evidence" in output.releaseLinkEvidence, false);
+  assert.equal(output.actionabilityEvidence.actionableIssues[0].id, "software-stability");
+  assert.equal("evidence" in output.actionabilityEvidence, false);
+  assert.equal("label" in output.actionabilityEvidence.actionableIssues[0], false);
   assert.doesNotMatch(JSON.stringify(output), /secret review text/);
+  assert.doesNotMatch(JSON.stringify(output), /secret scope text|secret symptom label/);
 });
 
 function result(store, storefront, status, complaintReviews, matchedComplaintReviews, { currentMissing = 0 } = {}) {
@@ -110,6 +124,11 @@ function result(store, storefront, status, complaintReviews, matchedComplaintRev
     sourceHealth: { fallbackUsed: false, versionDataAvailable: true },
     sourceEvidence: { ready: true, connector: store, reason: null },
     releaseLinkEvidence: { available: false, level: "unknown" },
+    actionabilityEvidence: {
+      available: true,
+      counts: { software: complaintReviews, "product-policy": 0, community: 0, support: 0, unclear: 0 }
+    },
+    triage: { decision: status === "fail" ? "manual-review" : "observe", blocking: status === "fail", issues: [] },
     versionEvidence: {
       current: { version: "2", missingReviews: currentMissing },
       baseline: { version: "1", missingReviews: 0 }
@@ -127,5 +146,29 @@ function releaseLink(excerpt) {
     linkedCount: 1,
     linkedShare: 0.5,
     evidence: [{ excerpt }]
+  };
+}
+
+function actionability(excerpt, label) {
+  return {
+    lowRatingReviewCount: 2,
+    counts: { software: 2, "product-policy": 0, community: 0, support: 0, unclear: 0 },
+    shares: { software: 1, "product-policy": 0, community: 0, support: 0, unclear: 0 },
+    softwareCount: 2,
+    softwareShare: 1,
+    releaseLinkedSoftwareCount: 2,
+    explicitReleaseSoftwareCount: 1,
+    actionableIssues: [{
+      id: "software-stability",
+      kind: "known-theme",
+      label,
+      count: 2,
+      share: 1,
+      releaseLinkedCount: 2,
+      explicitReleaseCount: 1,
+      supported: true,
+      evidence: [{ excerpt }]
+    }],
+    evidence: { software: [{ excerpt }], "product-policy": [], community: [], support: [], unclear: [] }
   };
 }

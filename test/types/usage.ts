@@ -1,5 +1,6 @@
 import {
   analyze,
+  classifyReviewScope,
   classifyReleaseLink,
   ConnectorRegistry,
   defineConnector,
@@ -39,7 +40,11 @@ const html: string = exportReport(result.report, "html");
 const count: number = result.report.sample.total;
 const check: RegressionResult = evaluateRegression(result.report, { maxRatingDrop: 0.25 });
 const releaseKind: string = classifyReleaseLink({ body: "Broken after the update." }).kind;
+const reviewScope: string = classifyReviewScope({ body: "The app crashes after the update." }).primary;
+const triageDecision: string | undefined = check.triage?.decision;
 void html;
 void count;
 void check;
 void releaseKind;
+void reviewScope;
+void triageDecision;

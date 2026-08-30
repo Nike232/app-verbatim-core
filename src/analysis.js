@@ -4,6 +4,50 @@ import { classifyReleaseLink } from "./release-link.js";
 
 const DAY_MS = 86_400_000;
 
+export const REVIEW_SCOPE_CATEGORIES = ["software", "product-policy", "community", "support", "unclear"];
+
+const STRONG_SOFTWARE_RULES = [
+  ["software-failure-en", /\b(?:crash(?:es|ed|ing)?|freez(?:e|es|ing)|frozen|buggy|glitch(?:es|y)?|keeps?\s+breaking|update required|login loop|sign[- ]?in loop|registration loop)\b/iu],
+  ["software-flow-en", /\b(?:app|application|feature|screen|page|interface|login|sync|autofill|notification|message|upload|download|button|link|deeplink|voice chat)\b[^.!?\n]{0,60}\b(?:doesn['’]?t work|does not work|isn['’]?t working|is not working|won['’]?t open|will not open|fails? to|failed to|stops? working|doesn['’]?t send|do not send|won['’]?t send|doesn['’]?t arrive|do not arrive|won['’]?t arrive)\b/iu],
+  ["software-data-en", /\b(?:los(?:e|es|ing|t)|delet(?:e|es|ed|ing)|corrupt(?:s|ed|ing)?)\b[^.!?\n]{0,40}\b(?:data|info|information|file|files|message|messages|project|projects|photo|photos)\b/iu],
+  ["software-de", /\b(?:st[uü]rzt|absturz|friert|eingefroren|fehlermeldung|anmeldeschleife|funktioniert nicht|l[aä]sst sich nicht [oö]ffnen|datenverlust|daten weg|nicht zugestellt)\b/iu],
+  ["software-fr", /\b(?:plante|bloqu[eé]e?|ne fonctionne (?:pas|plus)|impossible (?:de|à) (?:ouvrir|connecter)|boucle de connexion|donn[eé]es perdues|notifications? n['’]arrive)\b/iu],
+  ["software-es", /\b(?:se bloquea|falla|no funciona|no se abre|bucle de inicio|datos perdidos|no llega[n]? (?:las )?notificaciones?)\b/iu],
+  ["software-zh", /(?:闪退|崩溃|卡死|打不开|无法启动|登录循环|无法登录|数据丢失|文件丢失|收不到(?:通知|验证码)|消息发不出去)/u],
+  ["software-ja", /(?:クラッシュ|強制終了|起動できない|開けない|ログインできない|ログインループ|データ消失|通知が届かない|メッセージを送れない)/u]
+];
+
+const COMMUNITY_RULES = [
+  ["community-en", /\b(?:scam(?:mer|mers|s)?|fraud|fake (?:account|accounts|profile|profiles|user|users)|catfish|harass(?:ed|ment|ing)?|dox(?:ed|xing)?|predator(?:s)?|abusive|sex worker(?:s)?|moderator(?:s|ion)?|content moderation|banned|perma(?:nent)?ban|suspended|spam violation|reported (?:the )?(?:user|account)|full of bots)\b/iu],
+  ["community-de", /\b(?:betr[uü]ger|betrug|gef[aä]lschte profile|bel[aä]stigung|gedoxxt|moderation|gesperrt|suspendiert|spam|bots)\b/iu],
+  ["community-fr", /\b(?:arnaque(?:ur|urs)?|fraude|faux profils?|harc[eè]lement|mod[eé]ration|banni|suspendu|spam|robots)\b/iu],
+  ["community-es", /\b(?:estafa(?:dor|dores)?|fraude|perfiles? falsos?|acoso|moderaci[oó]n|baneado|suspendido|spam|bots)\b/iu],
+  ["community-zh", /(?:骗子|诈骗|假账号|虚假账号|骚扰|网暴|人肉|封号|禁言|内容审核|举报用户|机器人账号)/u],
+  ["community-ja", /(?:詐欺|偽アカウント|嫌がらせ|晒された|アカウント停止|凍結|コンテンツ審査|スパム|ボット)/u]
+];
+
+const SUPPORT_RULES = [
+  ["support-en", /\b(?:customer support|customer service|support team|support ticket|help ?desk|developer reply|support reply|no (?:human )?response|never (?:replied|responded)|appeal (?:was )?(?:ignored|closed|denied)|cannot (?:reach|contact) support)\b/iu],
+  ["support-de", /\b(?:kundendienst|kundenservice|support-team|supportticket|keine antwort|antwortet nicht|beschwerde ignoriert)\b/iu],
+  ["support-fr", /\b(?:service client|support client|ticket de support|aucune r[eé]ponse|ne r[eé]pond pas|recours ignor[eé])\b/iu],
+  ["support-es", /\b(?:atenci[oó]n al cliente|servicio al cliente|ticket de soporte|sin respuesta|no responde|apelaci[oó]n ignorada)\b/iu],
+  ["support-zh", /(?:客服|人工服务|工单|无人回复|没有回复|申诉被忽略|联系不上支持)/u],
+  ["support-ja", /(?:カスタマーサポート|サポートチケット|返事がない|返信がない|問い合わせを無視|異議申し立て)/u]
+];
+
+const PRODUCT_POLICY_RULES = [
+  ["policy-en", /\b(?:age verification|identity verification|government id|photo id|forced ai|forces? (?:me|users?)|removed feature|pay to|paid feature|new design|new layout|redesign|privacy policy)\b/iu],
+  ["policy-de", /\b(?:altersverifizierung|identit[aä]tspr[uü]fung|ausweispflicht|erzwingt|entfernte funktion|neues design|neues layout)\b/iu],
+  ["policy-fr", /\b(?:v[eé]rification de l['’][aâ]ge|v[eé]rification d['’]identit[eé]|pi[eè]ce d['’]identit[eé]|fonction supprim[eé]e|nouveau design)\b/iu],
+  ["policy-es", /\b(?:verificaci[oó]n de edad|verificaci[oó]n de identidad|documento de identidad|funci[oó]n eliminada|nuevo dise[nñ]o)\b/iu],
+  ["policy-zh", /(?:年龄验证|实名认证|身份证|强制使用|功能被移除|新的设计|新版布局|隐私政策)/u],
+  ["policy-ja", /(?:年齢確認|本人確認|身分証|強制|機能が削除|新しいデザイン|新しいレイアウト|プライバシーポリシー)/u]
+];
+
+const AMBIGUOUS_ACCOUNT_HITS = new Set(["account", "accounts", "账户", "账号", "konto", "benutzerkonto", "アカウント"]);
+const REQUESTABLE_SYNC_HITS = new Set(["sync", "backup", "restore", "import", "export", "同步", "备份", "恢复", "导入", "导出", "synchron", "synchronisierung", "offline", "sauvegarde", "sincron", "copia de seguridad", "同期", "バックアップ"]);
+const REQUESTABLE_NOTIFICATION_HITS = new Set(["notification", "notify", "reminder", "alert", "通知", "提醒", "推送", "benachrichtigung", "benachrichtigungen", "push", "notificación", "recordatorio", "リマインダー"]);
+
 export const THEME_RULES = [
   {
     id: "stability",
@@ -123,6 +167,59 @@ export function classifyReview(review) {
     const hits = theme.keywords.filter((keyword) => matchesKeyword(haystack, keyword));
     return hits.length ? { id: theme.id, intent: theme.intent, hits, confidence: Math.min(0.98, 0.56 + hits.length * 0.13) } : null;
   }).filter(Boolean);
+}
+
+export function classifyReviewScope(review) {
+  const text = `${review?.title ?? ""} ${review?.body ?? review?.text ?? ""}`.replace(/\s+/g, " ").trim();
+  const matches = classifyReview({ title: review?.title ?? "", body: review?.body ?? review?.text ?? "" });
+  const strongSoftware = matchingScopeRuleIds(text, STRONG_SOFTWARE_RULES);
+  const community = matchingScopeRuleIds(text, COMMUNITY_RULES);
+  const support = matchingScopeRuleIds(text, SUPPORT_RULES);
+  const productPolicy = matchingScopeRuleIds(text, PRODUCT_POLICY_RULES);
+  const requestPresent = matches.some((match) => match.intent === "request");
+  const softwareThemes = [];
+
+  for (const match of matches.filter((item) => item.intent === "problem")) {
+    const usableHits = match.hits.filter((hit) => {
+      if (match.id === "account") return !AMBIGUOUS_ACCOUNT_HITS.has(hit);
+      if (match.id === "sync" && requestPresent) return !REQUESTABLE_SYNC_HITS.has(hit);
+      if (match.id === "notifications" && requestPresent) return !REQUESTABLE_NOTIFICATION_HITS.has(hit);
+      return true;
+    });
+    if (["stability", "performance", "account", "sync", "notifications"].includes(match.id) && usableHits.length) {
+      softwareThemes.push(match.id);
+    }
+    if (["pricing", "privacy", "usability"].includes(match.id)) {
+      productPolicy.push(...match.hits.map((hit) => `theme-${match.id}:${hit}`));
+    }
+  }
+  for (const match of matches.filter((item) => item.intent === "request")) {
+    productPolicy.push(...match.hits.map((hit) => `theme-${match.id}:${hit}`));
+  }
+
+  const themeSoftware = [...new Set(softwareThemes)].map((id) => `theme-${id}`);
+  let primary = "unclear";
+  if (strongSoftware.length) primary = "software";
+  else if (community.length) primary = "community";
+  else if (support.length) primary = "support";
+  else if (productPolicy.length) primary = "product-policy";
+  else if (themeSoftware.length) primary = "software";
+
+  return {
+    primary,
+    actionable: primary === "software",
+    hits: {
+      software: [...strongSoftware, ...themeSoftware],
+      "product-policy": [...new Set(productPolicy)],
+      community,
+      support
+    },
+    softwareThemes: [...new Set(softwareThemes)]
+  };
+}
+
+function matchingScopeRuleIds(text, rules) {
+  return rules.filter(([, pattern]) => pattern.test(text)).map(([id]) => id);
 }
 
 function matchesKeyword(haystack, value) {
@@ -334,6 +431,7 @@ function aggregateVersions(reviews) {
       negativeShare: round(items.filter((item) => item.rating <= 2).length / items.length, 3),
       lastSeenAt: sorted[0].createdAt,
       releaseLinkEvidence: aggregateReleaseLinkEvidence(items),
+      actionabilityEvidence: aggregateActionabilityEvidence(items),
       themeSignals,
       evidence: sorted.filter((item) => item.rating <= 2).slice(0, 3).map(evidenceRef)
     };
@@ -366,6 +464,103 @@ function aggregateReleaseLinkEvidence(reviews) {
     linkedShare: lowRated.length ? round(linked.length / lowRated.length, 3) : 0,
     evidence
   };
+}
+
+function aggregateActionabilityEvidence(reviews) {
+  const scoped = reviews.filter((review) => review.rating <= 3).map((review) => ({
+    review,
+    scope: classifyReviewScope(review),
+    link: classifyReleaseLink(review)
+  }));
+  const counts = Object.fromEntries(REVIEW_SCOPE_CATEGORIES.map((category) => [
+    category,
+    scoped.filter(({ scope }) => scope.primary === category).length
+  ]));
+  const shares = Object.fromEntries(REVIEW_SCOPE_CATEGORIES.map((category) => [
+    category,
+    scoped.length ? round(counts[category] / scoped.length, 3) : 0
+  ]));
+  const software = scoped.filter(({ scope }) => scope.primary === "software");
+  const linkedSoftware = software.filter(({ link }) => link.kind !== "none");
+  const explicitSoftware = software.filter(({ link }) => link.kind === "explicit");
+  const evidence = Object.fromEntries(REVIEW_SCOPE_CATEGORIES.map((category) => [
+    category,
+    scoped.filter(({ scope }) => scope.primary === category)
+      .sort((left, right) => evidenceScore(right.review) - evidenceScore(left.review))
+      .slice(0, 3)
+      .map(scopeEvidenceRef)
+  ]));
+  const actionableIssues = buildActionableIssues(scoped, scoped.length);
+  return {
+    lowRatingReviewCount: scoped.length,
+    counts,
+    shares,
+    softwareCount: software.length,
+    softwareShare: scoped.length ? round(software.length / scoped.length, 3) : 0,
+    releaseLinkedSoftwareCount: linkedSoftware.length,
+    explicitReleaseSoftwareCount: explicitSoftware.length,
+    actionableIssues,
+    evidence
+  };
+}
+
+function buildActionableIssues(scoped, totalLowRated) {
+  const software = scoped.filter(({ scope }) => scope.primary === "software");
+  const byTheme = new Map();
+  for (const item of software) {
+    for (const themeId of item.scope.softwareThemes) {
+      byTheme.set(themeId, [...(byTheme.get(themeId) ?? []), item]);
+    }
+  }
+  const labels = new Map(THEME_RULES.map((theme) => [theme.id, theme.label]));
+  const known = [...byTheme.entries()].filter(([, items]) => items.length >= 2).map(([themeId, items]) => {
+    const releaseLinkedCount = items.filter(({ link }) => link.kind !== "none").length;
+    const explicitReleaseCount = items.filter(({ link }) => link.kind === "explicit").length;
+    return {
+      id: `software-${themeId}`,
+      kind: "known-theme",
+      label: labels.get(themeId) ?? themeId,
+      count: items.length,
+      share: totalLowRated ? round(items.length / totalLowRated, 3) : 0,
+      releaseLinkedCount,
+      explicitReleaseCount,
+      supported: releaseLinkedCount >= 2 && explicitReleaseCount >= 1,
+      evidence: items.sort((left, right) => releaseLinkRank(right.link) - releaseLinkRank(left.link) || evidenceScore(right.review) - evidenceScore(left.review)).slice(0, 4).map(scopeEvidenceRef)
+    };
+  });
+
+  const explicitUnknown = software.filter(({ scope, link }) => !scope.softwareThemes.length && link.kind === "explicit");
+  const discovered = discoverIssues(explicitUnknown.map(({ review }) => review), {
+    totalReviews: totalLowRated,
+    limit: 4
+  }).map((issue) => ({
+    id: `software-${issue.id}`,
+    kind: "discovered",
+    label: issue.label,
+    count: issue.count,
+    share: issue.share,
+    releaseLinkedCount: issue.count,
+    explicitReleaseCount: issue.count,
+    supported: issue.count >= 2,
+    evidence: issue.evidence.map((item) => {
+      const source = explicitUnknown.find(({ review }) => review.reviewId === item.reviewId);
+      return source ? scopeEvidenceRef(source) : item;
+    })
+  }));
+
+  return [...known, ...discovered].sort((left, right) => Number(right.supported) - Number(left.supported) || right.count - left.count || left.id.localeCompare(right.id));
+}
+
+function scopeEvidenceRef({ review, scope, link }) {
+  return {
+    ...evidenceRef(review),
+    reviewScope: { primary: scope.primary, hits: scope.hits },
+    releaseLink: link
+  };
+}
+
+function releaseLinkRank(link) {
+  return link.kind === "explicit" ? 2 : link.kind === "change" ? 1 : 0;
 }
 
 function compareVersionIdentifiers(left, right) {

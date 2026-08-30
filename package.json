@@ -1,6 +1,6 @@
 {
   "name": "app-verbatim",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "description": "Catch App Store and Google Play review regressions in CI, with source evidence.",
   "keywords": [
     "app-store",
@@ -58,10 +58,10 @@
     "test": "node --test test/*.test.js",
     "test:live": "node --test test/connectors-live.test.js",
     "build:action": "esbuild src/action.js --bundle --platform=node --target=node24 --format=cjs --outfile=dist/action.cjs --legal-comments=external",
-    "check:syntax": "node --check src/cli.js && node --check src/index.js && node --check src/version.js && node --check src/analysis.js && node --check src/release-link.js && node --check src/regression.js && node --check src/discovery.js && node --check src/mcp.js && node --check src/action.js && node --check scripts/evaluate-release-link.mjs && node --check scripts/lib/cohort.mjs && node --check scripts/validate-release-cohort.mjs",
+    "check:syntax": "node --check src/cli.js && node --check src/index.js && node --check src/version.js && node --check src/analysis.js && node --check src/release-link.js && node --check src/regression.js && node --check src/discovery.js && node --check src/mcp.js && node --check src/action.js && node --check scripts/evaluate-release-link.mjs && node --check scripts/evaluate-actionability.mjs && node --check scripts/lib/cohort.mjs && node --check scripts/validate-release-cohort.mjs",
     "check:types": "tsc -p test/types/tsconfig.json --noEmit",
     "check:demo": "node scripts/demo-smoke.mjs",
-    "check:eval": "node scripts/evaluate.mjs && node scripts/evaluate-release-link.mjs",
+    "check:eval": "node scripts/evaluate.mjs && node scripts/evaluate-release-link.mjs && node scripts/evaluate-actionability.mjs",
     "check:cohort": "node scripts/validate-release-cohort.mjs --validate-only && node scripts/validate-release-cohort.mjs --validate-only --manifest benchmarks/storefront-matrix.json",
     "check:mcp": "node scripts/mcp-smoke.mjs",
     "check:action": "node scripts/verify-action-bundle.mjs && node scripts/action-smoke.mjs",

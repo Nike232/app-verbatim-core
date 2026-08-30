@@ -38,3 +38,13 @@
 {"id":"explicit-fr-1","language":"fr","text":"Depuis la dernière mise à jour, l'application plante.","label":"explicit"}
 {"id":"change-fr-1","language":"fr","text":"Avant tout marchait, maintenant la connexion échoue.","label":"change"}
 {"id":"none-fr-1","language":"fr","text":"La version mobile est difficile à utiliser.","label":"none"}
+{"id":"explicit-en-version","language":"en","text":"Since version 4.8.0 the app crashes on launch.","label":"explicit"}
+{"id":"explicit-de-version","language":"de","text":"Version 4.8.0 stürzt beim Öffnen ab.","label":"explicit"}
+{"id":"explicit-fr-version","language":"fr","text":"La version 4.8.0 plante au démarrage.","label":"explicit"}
+{"id":"explicit-es-version","language":"es","text":"La versión 4.8.0 se bloquea al iniciar.","label":"explicit"}
+{"id":"explicit-zh-version","language":"zh","text":"4.8.0 版本启动时一直闪退。","label":"explicit"}
+{"id":"explicit-ja-version","language":"ja","text":"4.8.0以降、起動時にクラッシュします。","label":"explicit"}
+{"id":"explicit-en-number","language":"en","text":"Since 4.8.0 the app crashes on launch.","label":"explicit"}
+{"id":"explicit-de-number","language":"de","text":"Seit 4.8.0 stürzt die App beim Öffnen ab.","label":"explicit"}
+{"id":"explicit-fr-number","language":"fr","text":"Depuis 4.8.0 l'application plante au démarrage.","label":"explicit"}
+{"id":"explicit-es-number","language":"es","text":"Desde 4.8.0 la aplicación se bloquea al iniciar.","label":"explicit"}

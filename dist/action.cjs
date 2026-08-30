@@ -342,6 +342,13 @@ var EXPLICIT_RULES = [
   ["update-required-en", /\b(?:app|application|software|screen|store)\b[^.!?\n]{0,60}\bupdate required\b/iu],
   ["repeated-updates-en", /\b(?:each|every|the\s+last\s+(?:two|three|\d+))\s+updates?\b/iu],
   ["regression-en", /\b(?:major|clear|serious|product|app|release|feature|functionality|performance|usability)?\s*regression\b/iu],
+  ["named-version-number-latin", /\b(?:version|versi[oó]n|v)\s*v?\d+(?:\.\d+){1,3}\b/iu],
+  ["after-version-number-en", /\b(?:after|since|following|from)\s+(?:the\s+)?(?:app\s+)?v?\d+(?:\.\d+){1,3}\b/iu],
+  ["after-version-number-de", /\b(?:seit|nach)\s+(?:dem\s+)?v?\d+(?:\.\d+){1,3}\b/iu],
+  ["after-version-number-fr", /\b(?:depuis|apr[eè]s)\s+(?:la\s+)?v?\d+(?:\.\d+){1,3}\b/iu],
+  ["after-version-number-es", /\b(?:desde|despu[eé]s de)\s+(?:la\s+)?v?\d+(?:\.\d+){1,3}\b/iu],
+  ["named-version-number-zh", /(?:版本\s*v?\d+(?:\.\d+){1,3}|v?\d+(?:\.\d+){1,3}\s*版本)/iu],
+  ["named-version-number-ja", /(?:バージョン\s*v?\d+(?:\.\d+){1,3}|v?\d+(?:\.\d+){1,3}\s*(?:以降|から))/iu],
   ["release-de", /\b(?:(?:seit|nach)\s+(?:(?:dem|einem)\s+)?(?:(?:letzten|neuesten|neuen)\s+)?(?:update|upgrade)|(?:diese[rmns]?|neue[rmns]?|letzte[rmns]?|neueste[rmns]?)\s+(?:version|update))\b/iu],
   ["release-fr", /\b(?:(?:depuis|apr[eè]s)\s+(?:la\s+)?(?:derni[eè]re|nouvelle|r[eé]cente)?\s*(?:mise [aà] jour|version)|cette\s+(?:mise [aà] jour|version))\b/iu],
   ["release-es", /\b(?:(?:desde|despu[eé]s de)\s+(?:la\s+)?(?:[uú]ltima|nueva|reciente)?\s*(?:actualizaci[oó]n|versi[oó]n)|esta\s+(?:actualizaci[oó]n|versi[oó]n))\b/iu],
@@ -377,6 +384,44 @@ function matchingRuleIds(text, rules) {
 
 // src/analysis.js
 var DAY_MS2 = 864e5;
+var REVIEW_SCOPE_CATEGORIES = ["software", "product-policy", "community", "support", "unclear"];
+var STRONG_SOFTWARE_RULES = [
+  ["software-failure-en", /\b(?:crash(?:es|ed|ing)?|freez(?:e|es|ing)|frozen|buggy|glitch(?:es|y)?|keeps?\s+breaking|update required|login loop|sign[- ]?in loop|registration loop)\b/iu],
+  ["software-flow-en", /\b(?:app|application|feature|screen|page|interface|login|sync|autofill|notification|message|upload|download|button|link|deeplink|voice chat)\b[^.!?\n]{0,60}\b(?:doesn['’]?t work|does not work|isn['’]?t working|is not working|won['’]?t open|will not open|fails? to|failed to|stops? working|doesn['’]?t send|do not send|won['’]?t send|doesn['’]?t arrive|do not arrive|won['’]?t arrive)\b/iu],
+  ["software-data-en", /\b(?:los(?:e|es|ing|t)|delet(?:e|es|ed|ing)|corrupt(?:s|ed|ing)?)\b[^.!?\n]{0,40}\b(?:data|info|information|file|files|message|messages|project|projects|photo|photos)\b/iu],
+  ["software-de", /\b(?:st[uü]rzt|absturz|friert|eingefroren|fehlermeldung|anmeldeschleife|funktioniert nicht|l[aä]sst sich nicht [oö]ffnen|datenverlust|daten weg|nicht zugestellt)\b/iu],
+  ["software-fr", /\b(?:plante|bloqu[eé]e?|ne fonctionne (?:pas|plus)|impossible (?:de|à) (?:ouvrir|connecter)|boucle de connexion|donn[eé]es perdues|notifications? n['’]arrive)\b/iu],
+  ["software-es", /\b(?:se bloquea|falla|no funciona|no se abre|bucle de inicio|datos perdidos|no llega[n]? (?:las )?notificaciones?)\b/iu],
+  ["software-zh", /(?:闪退|崩溃|卡死|打不开|无法启动|登录循环|无法登录|数据丢失|文件丢失|收不到(?:通知|验证码)|消息发不出去)/u],
+  ["software-ja", /(?:クラッシュ|強制終了|起動できない|開けない|ログインできない|ログインループ|データ消失|通知が届かない|メッセージを送れない)/u]
+];
+var COMMUNITY_RULES = [
+  ["community-en", /\b(?:scam(?:mer|mers|s)?|fraud|fake (?:account|accounts|profile|profiles|user|users)|catfish|harass(?:ed|ment|ing)?|dox(?:ed|xing)?|predator(?:s)?|abusive|sex worker(?:s)?|moderator(?:s|ion)?|content moderation|banned|perma(?:nent)?ban|suspended|spam violation|reported (?:the )?(?:user|account)|full of bots)\b/iu],
+  ["community-de", /\b(?:betr[uü]ger|betrug|gef[aä]lschte profile|bel[aä]stigung|gedoxxt|moderation|gesperrt|suspendiert|spam|bots)\b/iu],
+  ["community-fr", /\b(?:arnaque(?:ur|urs)?|fraude|faux profils?|harc[eè]lement|mod[eé]ration|banni|suspendu|spam|robots)\b/iu],
+  ["community-es", /\b(?:estafa(?:dor|dores)?|fraude|perfiles? falsos?|acoso|moderaci[oó]n|baneado|suspendido|spam|bots)\b/iu],
+  ["community-zh", /(?:骗子|诈骗|假账号|虚假账号|骚扰|网暴|人肉|封号|禁言|内容审核|举报用户|机器人账号)/u],
+  ["community-ja", /(?:詐欺|偽アカウント|嫌がらせ|晒された|アカウント停止|凍結|コンテンツ審査|スパム|ボット)/u]
+];
+var SUPPORT_RULES = [
+  ["support-en", /\b(?:customer support|customer service|support team|support ticket|help ?desk|developer reply|support reply|no (?:human )?response|never (?:replied|responded)|appeal (?:was )?(?:ignored|closed|denied)|cannot (?:reach|contact) support)\b/iu],
+  ["support-de", /\b(?:kundendienst|kundenservice|support-team|supportticket|keine antwort|antwortet nicht|beschwerde ignoriert)\b/iu],
+  ["support-fr", /\b(?:service client|support client|ticket de support|aucune r[eé]ponse|ne r[eé]pond pas|recours ignor[eé])\b/iu],
+  ["support-es", /\b(?:atenci[oó]n al cliente|servicio al cliente|ticket de soporte|sin respuesta|no responde|apelaci[oó]n ignorada)\b/iu],
+  ["support-zh", /(?:客服|人工服务|工单|无人回复|没有回复|申诉被忽略|联系不上支持)/u],
+  ["support-ja", /(?:カスタマーサポート|サポートチケット|返事がない|返信がない|問い合わせを無視|異議申し立て)/u]
+];
+var PRODUCT_POLICY_RULES = [
+  ["policy-en", /\b(?:age verification|identity verification|government id|photo id|forced ai|forces? (?:me|users?)|removed feature|pay to|paid feature|new design|new layout|redesign|privacy policy)\b/iu],
+  ["policy-de", /\b(?:altersverifizierung|identit[aä]tspr[uü]fung|ausweispflicht|erzwingt|entfernte funktion|neues design|neues layout)\b/iu],
+  ["policy-fr", /\b(?:v[eé]rification de l['’][aâ]ge|v[eé]rification d['’]identit[eé]|pi[eè]ce d['’]identit[eé]|fonction supprim[eé]e|nouveau design)\b/iu],
+  ["policy-es", /\b(?:verificaci[oó]n de edad|verificaci[oó]n de identidad|documento de identidad|funci[oó]n eliminada|nuevo dise[nñ]o)\b/iu],
+  ["policy-zh", /(?:年龄验证|实名认证|身份证|强制使用|功能被移除|新的设计|新版布局|隐私政策)/u],
+  ["policy-ja", /(?:年齢確認|本人確認|身分証|強制|機能が削除|新しいデザイン|新しいレイアウト|プライバシーポリシー)/u]
+];
+var AMBIGUOUS_ACCOUNT_HITS = /* @__PURE__ */ new Set(["account", "accounts", "\u8D26\u6237", "\u8D26\u53F7", "konto", "benutzerkonto", "\u30A2\u30AB\u30A6\u30F3\u30C8"]);
+var REQUESTABLE_SYNC_HITS = /* @__PURE__ */ new Set(["sync", "backup", "restore", "import", "export", "\u540C\u6B65", "\u5907\u4EFD", "\u6062\u590D", "\u5BFC\u5165", "\u5BFC\u51FA", "synchron", "synchronisierung", "offline", "sauvegarde", "sincron", "copia de seguridad", "\u540C\u671F", "\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7"]);
+var REQUESTABLE_NOTIFICATION_HITS = /* @__PURE__ */ new Set(["notification", "notify", "reminder", "alert", "\u901A\u77E5", "\u63D0\u9192", "\u63A8\u9001", "benachrichtigung", "benachrichtigungen", "push", "notificaci\xF3n", "recordatorio", "\u30EA\u30DE\u30A4\u30F3\u30C0\u30FC"]);
 var THEME_RULES = [
   {
     id: "stability",
@@ -636,6 +681,54 @@ function classifyReview(review) {
     return hits.length ? { id: theme.id, intent: theme.intent, hits, confidence: Math.min(0.98, 0.56 + hits.length * 0.13) } : null;
   }).filter(Boolean);
 }
+function classifyReviewScope(review) {
+  const text = `${review?.title ?? ""} ${review?.body ?? review?.text ?? ""}`.replace(/\s+/g, " ").trim();
+  const matches = classifyReview({ title: review?.title ?? "", body: review?.body ?? review?.text ?? "" });
+  const strongSoftware = matchingScopeRuleIds(text, STRONG_SOFTWARE_RULES);
+  const community = matchingScopeRuleIds(text, COMMUNITY_RULES);
+  const support = matchingScopeRuleIds(text, SUPPORT_RULES);
+  const productPolicy = matchingScopeRuleIds(text, PRODUCT_POLICY_RULES);
+  const requestPresent = matches.some((match) => match.intent === "request");
+  const softwareThemes = [];
+  for (const match of matches.filter((item) => item.intent === "problem")) {
+    const usableHits = match.hits.filter((hit) => {
+      if (match.id === "account") return !AMBIGUOUS_ACCOUNT_HITS.has(hit);
+      if (match.id === "sync" && requestPresent) return !REQUESTABLE_SYNC_HITS.has(hit);
+      if (match.id === "notifications" && requestPresent) return !REQUESTABLE_NOTIFICATION_HITS.has(hit);
+      return true;
+    });
+    if (["stability", "performance", "account", "sync", "notifications"].includes(match.id) && usableHits.length) {
+      softwareThemes.push(match.id);
+    }
+    if (["pricing", "privacy", "usability"].includes(match.id)) {
+      productPolicy.push(...match.hits.map((hit) => `theme-${match.id}:${hit}`));
+    }
+  }
+  for (const match of matches.filter((item) => item.intent === "request")) {
+    productPolicy.push(...match.hits.map((hit) => `theme-${match.id}:${hit}`));
+  }
+  const themeSoftware = [...new Set(softwareThemes)].map((id) => `theme-${id}`);
+  let primary = "unclear";
+  if (strongSoftware.length) primary = "software";
+  else if (community.length) primary = "community";
+  else if (support.length) primary = "support";
+  else if (productPolicy.length) primary = "product-policy";
+  else if (themeSoftware.length) primary = "software";
+  return {
+    primary,
+    actionable: primary === "software",
+    hits: {
+      software: [...strongSoftware, ...themeSoftware],
+      "product-policy": [...new Set(productPolicy)],
+      community,
+      support
+    },
+    softwareThemes: [...new Set(softwareThemes)]
+  };
+}
+function matchingScopeRuleIds(text, rules) {
+  return rules.filter(([, pattern]) => pattern.test(text)).map(([id]) => id);
+}
 function matchesKeyword(haystack, value) {
   const keyword = value.toLowerCase();
   if (/[^a-zà-öø-ÿ\s'-]/u.test(keyword)) return haystack.includes(keyword);
@@ -824,6 +917,7 @@ function aggregateVersions2(reviews2) {
       negativeShare: round2(items.filter((item) => item.rating <= 2).length / items.length, 3),
       lastSeenAt: sorted[0].createdAt,
       releaseLinkEvidence: aggregateReleaseLinkEvidence(items),
+      actionabilityEvidence: aggregateActionabilityEvidence(items),
       themeSignals,
       evidence: sorted.filter((item) => item.rating <= 2).slice(0, 3).map(evidenceRef2)
     };
@@ -848,6 +942,94 @@ function aggregateReleaseLinkEvidence(reviews2) {
     linkedShare: lowRated.length ? round2(linked.length / lowRated.length, 3) : 0,
     evidence
   };
+}
+function aggregateActionabilityEvidence(reviews2) {
+  const scoped = reviews2.filter((review) => review.rating <= 3).map((review) => ({
+    review,
+    scope: classifyReviewScope(review),
+    link: classifyReleaseLink(review)
+  }));
+  const counts = Object.fromEntries(REVIEW_SCOPE_CATEGORIES.map((category2) => [
+    category2,
+    scoped.filter(({ scope }) => scope.primary === category2).length
+  ]));
+  const shares = Object.fromEntries(REVIEW_SCOPE_CATEGORIES.map((category2) => [
+    category2,
+    scoped.length ? round2(counts[category2] / scoped.length, 3) : 0
+  ]));
+  const software = scoped.filter(({ scope }) => scope.primary === "software");
+  const linkedSoftware = software.filter(({ link }) => link.kind !== "none");
+  const explicitSoftware = software.filter(({ link }) => link.kind === "explicit");
+  const evidence = Object.fromEntries(REVIEW_SCOPE_CATEGORIES.map((category2) => [
+    category2,
+    scoped.filter(({ scope }) => scope.primary === category2).sort((left, right) => evidenceScore2(right.review) - evidenceScore2(left.review)).slice(0, 3).map(scopeEvidenceRef)
+  ]));
+  const actionableIssues = buildActionableIssues(scoped, scoped.length);
+  return {
+    lowRatingReviewCount: scoped.length,
+    counts,
+    shares,
+    softwareCount: software.length,
+    softwareShare: scoped.length ? round2(software.length / scoped.length, 3) : 0,
+    releaseLinkedSoftwareCount: linkedSoftware.length,
+    explicitReleaseSoftwareCount: explicitSoftware.length,
+    actionableIssues,
+    evidence
+  };
+}
+function buildActionableIssues(scoped, totalLowRated) {
+  const software = scoped.filter(({ scope }) => scope.primary === "software");
+  const byTheme = /* @__PURE__ */ new Map();
+  for (const item of software) {
+    for (const themeId of item.scope.softwareThemes) {
+      byTheme.set(themeId, [...byTheme.get(themeId) ?? [], item]);
+    }
+  }
+  const labels = new Map(THEME_RULES.map((theme) => [theme.id, theme.label]));
+  const known = [...byTheme.entries()].filter(([, items]) => items.length >= 2).map(([themeId, items]) => {
+    const releaseLinkedCount = items.filter(({ link }) => link.kind !== "none").length;
+    const explicitReleaseCount = items.filter(({ link }) => link.kind === "explicit").length;
+    return {
+      id: `software-${themeId}`,
+      kind: "known-theme",
+      label: labels.get(themeId) ?? themeId,
+      count: items.length,
+      share: totalLowRated ? round2(items.length / totalLowRated, 3) : 0,
+      releaseLinkedCount,
+      explicitReleaseCount,
+      supported: releaseLinkedCount >= 2 && explicitReleaseCount >= 1,
+      evidence: items.sort((left, right) => releaseLinkRank(right.link) - releaseLinkRank(left.link) || evidenceScore2(right.review) - evidenceScore2(left.review)).slice(0, 4).map(scopeEvidenceRef)
+    };
+  });
+  const explicitUnknown = software.filter(({ scope, link }) => !scope.softwareThemes.length && link.kind === "explicit");
+  const discovered = discoverIssues(explicitUnknown.map(({ review }) => review), {
+    totalReviews: totalLowRated,
+    limit: 4
+  }).map((issue2) => ({
+    id: `software-${issue2.id}`,
+    kind: "discovered",
+    label: issue2.label,
+    count: issue2.count,
+    share: issue2.share,
+    releaseLinkedCount: issue2.count,
+    explicitReleaseCount: issue2.count,
+    supported: issue2.count >= 2,
+    evidence: issue2.evidence.map((item) => {
+      const source = explicitUnknown.find(({ review }) => review.reviewId === item.reviewId);
+      return source ? scopeEvidenceRef(source) : item;
+    })
+  }));
+  return [...known, ...discovered].sort((left, right) => Number(right.supported) - Number(left.supported) || right.count - left.count || left.id.localeCompare(right.id));
+}
+function scopeEvidenceRef({ review, scope, link }) {
+  return {
+    ...evidenceRef2(review),
+    reviewScope: { primary: scope.primary, hits: scope.hits },
+    releaseLink: link
+  };
+}
+function releaseLinkRank(link) {
+  return link.kind === "explicit" ? 2 : link.kind === "change" ? 1 : 0;
 }
 function compareVersionIdentifiers(left, right) {
   const a = String(left).match(/\d+/g)?.map(Number);
@@ -1058,7 +1240,7 @@ function validateConnector(connector) {
 }
 
 // src/version.js
-var VERSION = "0.5.8";
+var VERSION = "0.5.9";
 
 // src/connectors/errors.js
 var ConnectorError = class extends Error {
@@ -7866,8 +8048,10 @@ function evaluateRegression(report, options = {}) {
   const versionEvidence = buildVersionEvidence(current, baseline ?? baselineCandidate, policy.minVersionReviews, Boolean(currentEligible && baseline));
   const sourceEvidence = buildSourceEvidence(report);
   const releaseLinkEvidence = buildReleaseLinkEvidence(current);
+  const actionabilityEvidence = buildActionabilityEvidence(current);
   if (!sourceEvidence.ready || !currentEligible || !baseline) {
     const summary = !sourceEvidence.ready ? `Public review source returned a partial sample (${sourceEvidence.reason}); release comparison is unsafe.` : !current ? `Need at least ${policy.minVersionReviews} reviews for the newest version and one earlier baseline; found no version data.` : !currentEligible ? `Newest version ${current.version} has ${reviewCount(current.count)}; need at least ${policy.minVersionReviews} before comparing it.` : baselineCandidate ? `Earlier version ${baselineCandidate.version} has ${reviewCount(baselineCandidate.count)}; need at least ${policy.minVersionReviews} for a baseline.` : `Need an earlier baseline version with at least ${policy.minVersionReviews} reviews.`;
+    const triage2 = buildTriage("insufficient-data", actionabilityEvidence, []);
     return {
       schemaVersion: 1,
       status: "insufficient-data",
@@ -7879,6 +8063,8 @@ function evaluateRegression(report, options = {}) {
       versionEvidence,
       sourceEvidence,
       releaseLinkEvidence,
+      actionabilityEvidence,
+      triage: triage2,
       policy,
       metrics: null,
       violations: [],
@@ -7976,6 +8162,7 @@ function evaluateRegression(report, options = {}) {
     });
   }
   const status = violations.length ? "fail" : "pass";
+  const triage = buildTriage(status, actionabilityEvidence, violations);
   return {
     schemaVersion: 1,
     status,
@@ -7987,6 +8174,8 @@ function evaluateRegression(report, options = {}) {
     versionEvidence,
     sourceEvidence,
     releaseLinkEvidence,
+    actionabilityEvidence,
+    triage,
     policy,
     metrics: {
       current: pickVersionMetrics(current),
@@ -7997,7 +8186,7 @@ function evaluateRegression(report, options = {}) {
       discoveredIssueChanges
     },
     violations,
-    summary: status === "fail" ? `${violations.length} release regression ${violations.length === 1 ? "signal exceeds" : "signals exceed"} the configured policy.` : `Version ${current.version} is within the configured regression policy compared with ${baseline.version}.`
+    summary: triage.reason
   };
 }
 function regressionToMarkdown(result) {
@@ -8009,6 +8198,9 @@ function regressionToMarkdown(result) {
     `**Status:** ${result.status.toUpperCase()} \xB7 ${escapeMarkdown(result.summary)}`,
     ""
   ];
+  if (result.triage) {
+    lines.push(`**Triage:** ${triageLabel(result.triage.decision)}${result.triage.blocking ? " \xB7 blocking" : ""}`, "");
+  }
   if (result.metrics) {
     lines.push(
       `Compared **v${escapeMarkdown(result.currentVersion)}** with **v${escapeMarkdown(result.baselineVersion)}**.`,
@@ -8028,6 +8220,27 @@ function regressionToMarkdown(result) {
       "<sub>This diagnostic changes confidence in release causality, not the rating-based gate. Store version attribution is correlation, not proof that a release caused a review.</sub>",
       ""
     );
+  }
+  if (result.actionabilityEvidence?.available) {
+    const scope = result.actionabilityEvidence;
+    lines.push(
+      "## Current-version review scope",
+      "",
+      "| Software | Product policy | Community | Support | Unclear |",
+      "| ---: | ---: | ---: | ---: | ---: |",
+      `| ${scope.counts.software} | ${scope.counts["product-policy"]} | ${scope.counts.community} | ${scope.counts.support} | ${scope.counts.unclear} |`,
+      ""
+    );
+  }
+  if (result.triage?.issues?.length) {
+    lines.push("## Repeated version-linked software symptoms", "");
+    for (const issue2 of result.triage.issues) {
+      lines.push(`### \u{1F6E0} ${escapeMarkdown(issue2.label)}`, "", `${issue2.count} software complaints; ${issue2.releaseLinkedCount} describe change over time and ${issue2.explicitReleaseCount} explicitly name an update or version.`, "");
+      for (const item of issue2.evidence.slice(0, 3)) {
+        lines.push(`- ${ratingLabel(item.rating)} \xB7 ${item.appVersion ? `v${escapeMarkdown(item.appVersion)} \xB7 ` : ""}${String(item.createdAt).slice(0, 10)} \u2014 \u201C${escapeMarkdown(item.excerpt)}\u201D`);
+      }
+      lines.push("");
+    }
   }
   if (result.violations.length) {
     lines.push("## Regression signals", "");
@@ -8105,6 +8318,54 @@ function buildReleaseLinkEvidence(version2) {
     evidence: []
   };
 }
+function buildActionabilityEvidence(version2) {
+  if (version2?.actionabilityEvidence) return { available: true, ...version2.actionabilityEvidence };
+  return {
+    available: false,
+    lowRatingReviewCount: 0,
+    counts: { software: 0, "product-policy": 0, community: 0, support: 0, unclear: 0 },
+    shares: { software: 0, "product-policy": 0, community: 0, support: 0, unclear: 0 },
+    softwareCount: 0,
+    softwareShare: 0,
+    releaseLinkedSoftwareCount: 0,
+    explicitReleaseSoftwareCount: 0,
+    actionableIssues: [],
+    evidence: { software: [], "product-policy": [], community: [], support: [], unclear: [] }
+  };
+}
+function buildTriage(status, actionability, violations) {
+  if (status === "insufficient-data") {
+    return {
+      decision: "observe",
+      blocking: false,
+      reason: "Release evidence is incomplete; continue observing until the source and version samples are sufficient.",
+      issues: []
+    };
+  }
+  if (status === "pass") {
+    return {
+      decision: "observe",
+      blocking: false,
+      reason: "The newest version is within the configured review-outcome policy; continue observing with the same method.",
+      issues: []
+    };
+  }
+  const issues = (actionability.actionableIssues ?? []).filter((issue2) => issue2.supported);
+  if (actionability.available && issues.length) {
+    return {
+      decision: "software-regression",
+      blocking: true,
+      reason: `${violations.length} review-outcome ${violations.length === 1 ? "signal exceeds" : "signals exceed"} policy and repeated version-linked software symptoms require engineering action.`,
+      issues
+    };
+  }
+  return {
+    decision: "manual-review",
+    blocking: true,
+    reason: "Review outcomes exceed policy, but the retrieved text does not establish a repeated version-linked software failure; manual review is required.",
+    issues: []
+  };
+}
 function versionSample(version2, required3) {
   const count = version2?.count ?? 0;
   return {
@@ -8146,6 +8407,9 @@ function ratingLabel(value) {
 }
 function releaseLinkLabel(value) {
   return value === "supported" ? "SUPPORTED" : value === "limited" ? "LIMITED" : "NONE FOUND";
+}
+function triageLabel(value) {
+  return value === "software-regression" ? "SOFTWARE REGRESSION" : value === "manual-review" ? "MANUAL REVIEW" : "OBSERVE";
 }
 function escapeMarkdown(value) {
   return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("@", "@\u200B").replaceAll("|", "\\|").replace(/([*_`[\]])/g, "\\$1");
@@ -8189,6 +8453,7 @@ async function main() {
   await setOutput("current-version", result.currentVersion ?? "");
   await setOutput("baseline-version", result.baselineVersion ?? "");
   await setOutput("release-link-level", result.releaseLinkEvidence?.level === "unknown" ? "" : result.releaseLinkEvidence?.level ?? "");
+  await setOutput("triage-decision", result.triage?.decision ?? "");
   await setOutput("violations", String(result.violations.length));
   await setOutput("result-file", outputPath);
   await setOutput("report-file", reportPath);
@@ -8212,7 +8477,8 @@ async function upsertIssue(result, markdown) {
   const token = optionalInput("github-token") ?? process.env.GITHUB_TOKEN;
   if (!repository || !token) throw new Error("create-issue requires GITHUB_REPOSITORY and a github-token input.");
   const marker = `<!-- app-verbatim:${result.app.store}:${result.app.id} -->`;
-  const title = `[App Verbatim] Review regression in v${result.currentVersion}`;
+  const label = result.triage?.decision === "software-regression" ? "Software regression" : "Review regression needs triage";
+  const title = `[App Verbatim] ${label} in v${result.currentVersion}`;
   const body = `${marker}
 ${markdown}`;
   const headers = {

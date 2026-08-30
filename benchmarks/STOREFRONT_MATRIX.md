@@ -100,3 +100,34 @@ All four failures still contained both a rating drop and a low-rating-share incr
 Manual review agreed with the distinctions. Discord contained repeated references to the newest or recent updates. Notion included an “update required” loop with no update available, alongside changed behavior and worsening experience. Bitwarden described recent or no-longer-working behavior without naming a release. Signal's low ratings described data loss, scams, account safety, and moderation concerns but did not connect those complaints to an update; the rating regression remains visible while its release causality is explicitly unsupported by the retrieved text.
 
 Two preceding full runs produced the same pass/fail/insufficient statuses and aggregate counts. The final rule refinement added the Notion update loop and changed-behavior wording to the transparent benchmark before this recorded run. The committed live report remains aggregate-only and excludes review text, authors, and review identifiers.
+
+## Actionability triage follow-up: 2026-08-31
+
+Release-link evidence says whether reviewers connect a complaint to change, but it does not tell an engineering team whether the complaint is a software failure, a product-policy objection, a community-governance problem, a support complaint, or too vague to route. The actionability layer assigns every current-version one- to three-star review to one of those five scopes while preserving the existing outcome gate.
+
+The final 40-case run produced:
+
+| Measure | Result |
+| --- | ---: |
+| Completed cases | 40 |
+| Decidable | 16 |
+| Pass | 12 |
+| Fail | 4 |
+| Insufficient data | 24 |
+| Connector errors | 0 |
+| Software regression | 1 |
+| Manual review | 3 |
+| Observe | 36 |
+
+Across 375 current-version low-rating reviews, the primary scopes were 83 software, 51 product policy, 12 community, 3 support, and 226 unclear. These are routing counts from a deterministic taxonomy, not prevalence estimates for either store.
+
+The same four US failures remained backed by rating-drop and low-rating-share signals. Triage separated them without changing their blocking status:
+
+| Failed case | Triage | Why |
+| --- | --- | --- |
+| Bitwarden · Google Play · US | `manual-review` | Repeated account symptoms had temporal-change language but no explicit update or version reference. |
+| Signal · Apple · US | `manual-review` | Most classified evidence concerned community governance, with no release-link phrase and no repeated software cluster. |
+| Notion · Google Play · US | `manual-review` | Release-link evidence was supported, but the software symptoms did not repeat as one supported cluster. |
+| Discord · Google Play · US | `software-regression` | Repeated account, stability, and notification symptoms each met the release-link rule, including explicit update evidence. |
+
+This is deliberately asymmetric. A failure needs both a failed outcome gate and a repeated version-linked software issue before it receives the engineering-ready label. Everything else remains a blocking `manual-review`; uncertain causality never converts a bad outcome into a pass. The aggregate report excludes review text, issue labels, authors, and review identifiers.

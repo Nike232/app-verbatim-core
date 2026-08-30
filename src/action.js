@@ -46,6 +46,7 @@ async function main() {
   await setOutput("current-version", result.currentVersion ?? "");
   await setOutput("baseline-version", result.baselineVersion ?? "");
   await setOutput("release-link-level", result.releaseLinkEvidence?.level === "unknown" ? "" : result.releaseLinkEvidence?.level ?? "");
+  await setOutput("triage-decision", result.triage?.decision ?? "");
   await setOutput("violations", String(result.violations.length));
   await setOutput("result-file", outputPath);
   await setOutput("report-file", reportPath);
@@ -72,7 +73,8 @@ async function upsertIssue(result, markdown) {
   const token = optionalInput("github-token") ?? process.env.GITHUB_TOKEN;
   if (!repository || !token) throw new Error("create-issue requires GITHUB_REPOSITORY and a github-token input.");
   const marker = `<!-- app-verbatim:${result.app.store}:${result.app.id} -->`;
-  const title = `[App Verbatim] Review regression in v${result.currentVersion}`;
+  const label = result.triage?.decision === "software-regression" ? "Software regression" : "Review regression needs triage";
+  const title = `[App Verbatim] ${label} in v${result.currentVersion}`;
   const body = `${marker}\n${markdown}`;
   const headers = {
     accept: "application/vnd.github+json",

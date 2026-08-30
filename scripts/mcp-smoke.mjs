@@ -29,8 +29,10 @@ try {
     arguments: { demo: true, limit: 96 }
   });
   assert.equal(called.isError, undefined);
-  assert.match(called.content[0].text, /4 release regression signals/);
+  assert.match(called.content[0].text, /4 review-outcome signals exceed policy/);
+  assert.match(called.content[0].text, /SOFTWARE REGRESSION/);
   assert.equal(called.structuredContent.result.status, "fail");
+  assert.equal(called.structuredContent.result.triage.decision, "software-regression");
   console.log("MCP stdio handshake, tool discovery, and tool call passed.");
 } finally {
   await client.close();

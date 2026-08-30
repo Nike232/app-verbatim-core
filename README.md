@@ -10,7 +10,7 @@
 
 **Catch bad mobile releases from App Store and Google Play reviews—inside CI.**
 
-App Verbatim compares review evidence between app versions, detects rating and complaint regressions, shows whether reviewers actually describe an update or before-and-after change, discovers repeated problems outside its built-in taxonomy, and can fail a GitHub workflow before a bad release becomes silent churn.
+App Verbatim compares review evidence between app versions, detects rating and complaint regressions, and separates repeated version-linked software failures from pricing or product-policy objections, community governance, support complaints, and unclear low ratings. It can fail a GitHub workflow before a bad release becomes silent churn while routing uncertain causality to manual review.
 
 No dashboard. No AI key. No claim without source reviews.
 
@@ -35,6 +35,9 @@ Current 4.8.0       Baseline 4.7.2       Change
 🔴 Low-rating share increased by 44%
 🟠 Stability and failures complaints increased by 26%
 🔴 New complaint fingerprint: camera uploads
+
+Triage: SOFTWARE REGRESSION · blocking
+Current low-rating scope: 21 software · 6 product policy · 3 unclear
 ```
 
 Every signal carries the reviews that produced it. Try a public listing:
@@ -58,7 +61,7 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.8` to pin an immutable release.
+It validates and canonicalizes the store URL, then creates `.github/workflows/app-verbatim.yml` with a daily schedule, manual trigger, least-privilege permissions, the moving `v0` action tag, and one deduplicated regression issue. Existing files are never replaced without `--force`; use `--action-ref v0.5.9` to pin an immutable release.
 
 The recommended command starts in observe-only mode: regressions and evidence still appear, but the workflow stays green while you learn the app's normal review volume. Remove the generated `fail-on-regression: false` line when the policy fits; omit `--observe-only` only when you intentionally want enforcement from the first run.
 
@@ -87,7 +90,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-The action writes a rich job summary, emits machine-readable JSON, fails on configurable thresholds, and creates or updates one deduplicated issue instead of opening alert spam. See every input and output in the [Action reference](docs/GITHUB_ACTION.md).
+The action writes a rich job summary, emits machine-readable JSON, fails on configurable thresholds, and creates or updates one deduplicated issue instead of opening alert spam. A failing outcome is labeled `software-regression` only when repeated software symptoms also carry version-link evidence; otherwise it stays blocking and is labeled `manual-review`. See every input and output in the [Action reference](docs/GITHUB_ACTION.md).
 
 ## Give your coding agent direct access
 
@@ -118,6 +121,7 @@ The server uses stdio, writes no local state, and requires no model-provider key
 | --- | --- |
 | Release regression gate | Evaluates the actual newest version against a sufficiently sampled earlier baseline; under-sampled newest releases remain explicitly inconclusive, positive theme mentions cannot fail a release, and explicit capability requests remain advisory even when they overlap a problem category. |
 | Evidence, not summaries | Rating drops, low-rating spikes, and theme changes retain representative source reviews. |
+| Conservative actionability triage | Classifies low-rating evidence as software, product policy, community governance, support, or unclear. Only a failing gate with repeated version-linked software symptoms becomes `software-regression`; every other failure remains blocking as `manual-review`. |
 | Correlation kept honest | Reports explicit update/version references separately from broader temporal changes. This changes causal confidence, never hides low ratings or silently weakens the gate. |
 | Unknown-problem discovery | Deterministic phrase mining surfaces repeated low-rating language not covered by predefined categories. |
 | Reproducible runs | Normalized datasets receive SHA-256 content hashes; the default engine is local and deterministic, and partial upstream pages are rejected before they can change a release conclusion. |
@@ -172,7 +176,7 @@ const { report } = await analyze(
 );
 
 const check = evaluateRegression(report, { maxRatingDrop: 0.3 });
-console.log(check.status, check.violations);
+console.log(check.status, check.triage.decision, check.violations);
 ```
 
 Custom review sources implement only `supports()` and `fetch()`. Start with the runnable [connector example](examples/custom-connector.mjs) and [Connector API](docs/CONNECTOR_API.md).
@@ -183,7 +187,7 @@ Custom review sources implement only `supports()` and `fetch()`. Start with the 
 npm run check
 ```
 
-That command verifies syntax and public types, runs offline unit/CLI tests, executes the six-language theme and release-link benchmarks and their committed quality gates, validates both live-cohort manifests without network access, performs a real MCP stdio handshake and tool call, generates the offline demo, smoke-tests the bundled GitHub Action, and installs the packed npm artifact into a clean consumer project.
+That command verifies syntax and public types, runs offline unit/CLI tests, executes the six-language theme, release-link, and actionability benchmarks and their committed quality gates, validates both live-cohort manifests without network access, performs a real MCP stdio handshake and tool call, generates the offline demo, smoke-tests the bundled GitHub Action, and installs the packed npm artifact into a clean consumer project.
 
 The small classifier benchmarks are committed under [benchmarks](benchmarks/README.md); their scope and limitations are documented alongside them. A separate [20-app real-store cohort](benchmarks/RELEASE_COHORT.md) measures whether the release policy can reach a decision, while the [40-case cross-storefront matrix](benchmarks/STOREFRONT_MATRIX.md) challenges Apple and Google behavior in US English and German storefronts. Both record aggregate-only human adjudication. Live store contracts run separately because upstream stores can rate-limit CI:
 
