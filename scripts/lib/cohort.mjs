@@ -28,6 +28,8 @@ export function buildCohortResult(cohortCase, analysis) {
     versionEvidence: regression.versionEvidence,
     sourceEvidence: regression.sourceEvidence,
     releaseLinkEvidence: pickReleaseLinkEvidence(regression.releaseLinkEvidence),
+    actionabilityEvidence: pickActionabilityEvidence(regression.actionabilityEvidence),
+    triage: pickTriage(regression.triage),
     currentReviews: regression.metrics?.current.count ?? analysis.report.versions[0]?.count ?? 0,
     baselineReviews: regression.metrics?.baseline.count ?? null,
     ratingDrop: regression.metrics?.ratingDrop ?? null,
@@ -64,6 +66,8 @@ export function summarizeCohort(results) {
     },
     currentComplaintThemeCoverage: combineThemeCoverage(results),
     releaseLinkEvidenceLevels: countReleaseLinkLevels(results),
+    reviewScopeCounts: combineReviewScopes(results),
+    triageDecisions: countTriageDecisions(results),
     violationCounts: countViolations(results)
   };
 }
@@ -204,7 +208,9 @@ function groupSummary(results, keyFor) {
   return Object.fromEntries([...groups.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([key, items]) => [key, {
     ...summarizeGroup(items),
     currentComplaintThemeCoverage: combineThemeCoverage(items),
-    releaseLinkEvidenceLevels: countReleaseLinkLevels(items)
+    releaseLinkEvidenceLevels: countReleaseLinkLevels(items),
+    reviewScopeCounts: combineReviewScopes(items),
+    triageDecisions: countTriageDecisions(items)
   }]));
 }
 
@@ -258,6 +264,53 @@ function pickReleaseLinkEvidence(value) {
     linkedCount: value?.linkedCount ?? 0,
     linkedShare: value?.linkedShare ?? 0
   };
+}
+
+function pickActionabilityEvidence(value) {
+  return {
+    available: value?.available ?? false,
+    lowRatingReviewCount: value?.lowRatingReviewCount ?? 0,
+    counts: value?.counts ?? { software: 0, "product-policy": 0, community: 0, support: 0, unclear: 0 },
+    shares: value?.shares ?? { software: 0, "product-policy": 0, community: 0, support: 0, unclear: 0 },
+    softwareCount: value?.softwareCount ?? 0,
+    softwareShare: value?.softwareShare ?? 0,
+    releaseLinkedSoftwareCount: value?.releaseLinkedSoftwareCount ?? 0,
+    explicitReleaseSoftwareCount: value?.explicitReleaseSoftwareCount ?? 0,
+    actionableIssues: (value?.actionableIssues ?? []).map((issue) => ({
+      id: issue.id,
+      kind: issue.kind,
+      count: issue.count,
+      share: issue.share,
+      releaseLinkedCount: issue.releaseLinkedCount,
+      explicitReleaseCount: issue.explicitReleaseCount,
+      supported: issue.supported
+    }))
+  };
+}
+
+function pickTriage(value) {
+  return {
+    decision: value?.decision ?? "observe",
+    blocking: value?.blocking ?? false,
+    issueIds: (value?.issues ?? []).map((issue) => issue.id)
+  };
+}
+
+function combineReviewScopes(results) {
+  const counts = { software: 0, "product-policy": 0, community: 0, support: 0, unclear: 0 };
+  for (const result of results.filter((item) => item.status !== "error")) {
+    for (const category of Object.keys(counts)) counts[category] += result.actionabilityEvidence?.counts?.[category] ?? 0;
+  }
+  return counts;
+}
+
+function countTriageDecisions(results) {
+  const counts = { "software-regression": 0, "manual-review": 0, observe: 0 };
+  for (const result of results.filter((item) => item.status !== "error")) {
+    const decision = result.triage?.decision ?? "observe";
+    counts[decision in counts ? decision : "observe"] += 1;
+  }
+  return counts;
 }
 
 function round(value) {

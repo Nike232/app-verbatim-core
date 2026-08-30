@@ -4,6 +4,23 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.5.9] - 2026-08-31
+
+### Added
+
+- Added deterministic low-rating review triage across software failures, product policy and pricing, community or content governance, support, and unclear feedback, with per-version counts, shares, and source evidence.
+- Added repeated version-linked software issue detection and `software-regression`, `manual-review`, or `observe` routing across the public API, CLI, GitHub Action, and MCP tool.
+- Added a balanced 60-example, six-language actionability benchmark with overall and per-category quality gates.
+
+### Changed
+
+- Failed review-outcome gates remain blocking, but now distinguish engineering-ready repeated software regressions from failures whose causality needs manual review.
+- Numeric version references such as `version 4.8.0` now count as explicit release-link evidence, and actionable issue evidence prioritizes release-linked reviews.
+
+### Validated
+
+- Live calibration separated Discord's repeated version-linked software symptoms (`software-regression`) from Bitwarden, Signal, and Notion outcome regressions that lacked a repeated supported software cluster (`manual-review`) without changing any raw pass/fail decision.
+
 ## [0.5.8] - 2026-08-31
 
 ### Added

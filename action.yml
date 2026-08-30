@@ -83,6 +83,8 @@ outputs:
     description: Previous version used as the baseline.
   release-link-level:
     description: supported, limited, or none for the current version's one- to three-star review text.
+  triage-decision:
+    description: software-regression, manual-review, or observe.
   violations:
     description: Number of policy violations.
   result-file:

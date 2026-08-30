@@ -21,6 +21,7 @@ export function evaluateRegression(report, options = {}) {
   const versionEvidence = buildVersionEvidence(current, baseline ?? baselineCandidate, policy.minVersionReviews, Boolean(currentEligible && baseline));
   const sourceEvidence = buildSourceEvidence(report);
   const releaseLinkEvidence = buildReleaseLinkEvidence(current);
+  const actionabilityEvidence = buildActionabilityEvidence(current);
 
   if (!sourceEvidence.ready || !currentEligible || !baseline) {
     const summary = !sourceEvidence.ready
@@ -32,6 +33,7 @@ export function evaluateRegression(report, options = {}) {
         : baselineCandidate
           ? `Earlier version ${baselineCandidate.version} has ${reviewCount(baselineCandidate.count)}; need at least ${policy.minVersionReviews} for a baseline.`
           : `Need an earlier baseline version with at least ${policy.minVersionReviews} reviews.`;
+    const triage = buildTriage("insufficient-data", actionabilityEvidence, []);
     return {
       schemaVersion: 1,
       status: "insufficient-data",
@@ -43,6 +45,8 @@ export function evaluateRegression(report, options = {}) {
       versionEvidence,
       sourceEvidence,
       releaseLinkEvidence,
+      actionabilityEvidence,
+      triage,
       policy,
       metrics: null,
       violations: [],
@@ -143,6 +147,7 @@ export function evaluateRegression(report, options = {}) {
   }
 
   const status = violations.length ? "fail" : "pass";
+  const triage = buildTriage(status, actionabilityEvidence, violations);
   return {
     schemaVersion: 1,
     status,
@@ -154,6 +159,8 @@ export function evaluateRegression(report, options = {}) {
     versionEvidence,
     sourceEvidence,
     releaseLinkEvidence,
+    actionabilityEvidence,
+    triage,
     policy,
     metrics: {
       current: pickVersionMetrics(current),
@@ -164,9 +171,7 @@ export function evaluateRegression(report, options = {}) {
       discoveredIssueChanges
     },
     violations,
-    summary: status === "fail"
-      ? `${violations.length} release regression ${violations.length === 1 ? "signal exceeds" : "signals exceed"} the configured policy.`
-      : `Version ${current.version} is within the configured regression policy compared with ${baseline.version}.`
+    summary: triage.reason
   };
 }
 
@@ -179,6 +184,9 @@ export function regressionToMarkdown(result) {
     `**Status:** ${result.status.toUpperCase()} · ${escapeMarkdown(result.summary)}`,
     ""
   ];
+  if (result.triage) {
+    lines.push(`**Triage:** ${triageLabel(result.triage.decision)}${result.triage.blocking ? " · blocking" : ""}`, "");
+  }
   if (result.metrics) {
     lines.push(
       `Compared **v${escapeMarkdown(result.currentVersion)}** with **v${escapeMarkdown(result.baselineVersion)}**.`,
@@ -198,6 +206,27 @@ export function regressionToMarkdown(result) {
       "<sub>This diagnostic changes confidence in release causality, not the rating-based gate. Store version attribution is correlation, not proof that a release caused a review.</sub>",
       ""
     );
+  }
+  if (result.actionabilityEvidence?.available) {
+    const scope = result.actionabilityEvidence;
+    lines.push(
+      "## Current-version review scope",
+      "",
+      "| Software | Product policy | Community | Support | Unclear |",
+      "| ---: | ---: | ---: | ---: | ---: |",
+      `| ${scope.counts.software} | ${scope.counts["product-policy"]} | ${scope.counts.community} | ${scope.counts.support} | ${scope.counts.unclear} |`,
+      ""
+    );
+  }
+  if (result.triage?.issues?.length) {
+    lines.push("## Repeated version-linked software symptoms", "");
+    for (const issue of result.triage.issues) {
+      lines.push(`### 🛠 ${escapeMarkdown(issue.label)}`, "", `${issue.count} software complaints; ${issue.releaseLinkedCount} describe change over time and ${issue.explicitReleaseCount} explicitly name an update or version.`, "");
+      for (const item of issue.evidence.slice(0, 3)) {
+        lines.push(`- ${ratingLabel(item.rating)} · ${item.appVersion ? `v${escapeMarkdown(item.appVersion)} · ` : ""}${String(item.createdAt).slice(0, 10)} — “${escapeMarkdown(item.excerpt)}”`);
+      }
+      lines.push("");
+    }
   }
   if (result.violations.length) {
     lines.push("## Regression signals", "");
@@ -283,6 +312,56 @@ function buildReleaseLinkEvidence(version) {
   };
 }
 
+function buildActionabilityEvidence(version) {
+  if (version?.actionabilityEvidence) return { available: true, ...version.actionabilityEvidence };
+  return {
+    available: false,
+    lowRatingReviewCount: 0,
+    counts: { software: 0, "product-policy": 0, community: 0, support: 0, unclear: 0 },
+    shares: { software: 0, "product-policy": 0, community: 0, support: 0, unclear: 0 },
+    softwareCount: 0,
+    softwareShare: 0,
+    releaseLinkedSoftwareCount: 0,
+    explicitReleaseSoftwareCount: 0,
+    actionableIssues: [],
+    evidence: { software: [], "product-policy": [], community: [], support: [], unclear: [] }
+  };
+}
+
+function buildTriage(status, actionability, violations) {
+  if (status === "insufficient-data") {
+    return {
+      decision: "observe",
+      blocking: false,
+      reason: "Release evidence is incomplete; continue observing until the source and version samples are sufficient.",
+      issues: []
+    };
+  }
+  if (status === "pass") {
+    return {
+      decision: "observe",
+      blocking: false,
+      reason: "The newest version is within the configured review-outcome policy; continue observing with the same method.",
+      issues: []
+    };
+  }
+  const issues = (actionability.actionableIssues ?? []).filter((issue) => issue.supported);
+  if (actionability.available && issues.length) {
+    return {
+      decision: "software-regression",
+      blocking: true,
+      reason: `${violations.length} review-outcome ${violations.length === 1 ? "signal exceeds" : "signals exceed"} policy and repeated version-linked software symptoms require engineering action.`,
+      issues
+    };
+  }
+  return {
+    decision: "manual-review",
+    blocking: true,
+    reason: "Review outcomes exceed policy, but the retrieved text does not establish a repeated version-linked software failure; manual review is required.",
+    issues: []
+  };
+}
+
 function versionSample(version, required) {
   const count = version?.count ?? 0;
   return {
@@ -333,6 +412,10 @@ function ratingLabel(value) {
 
 function releaseLinkLabel(value) {
   return value === "supported" ? "SUPPORTED" : value === "limited" ? "LIMITED" : "NONE FOUND";
+}
+
+function triageLabel(value) {
+  return value === "software-regression" ? "SOFTWARE REGRESSION" : value === "manual-review" ? "MANUAL REVIEW" : "OBSERVE";
 }
 
 function escapeMarkdown(value) {

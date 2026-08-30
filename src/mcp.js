@@ -31,7 +31,7 @@ export function createMcpServer() {
 
   server.registerTool("check_release_regression", {
     title: "Check app release regression",
-    description: "Evaluate the actual newest app version against the newest sufficiently sampled earlier version. Returns pass, fail, or insufficient-data plus the source reviews behind every violation.",
+    description: "Evaluate the actual newest app version against the newest sufficiently sampled earlier version. Returns the outcome gate plus software-regression, manual-review, or observe triage with source evidence.",
     inputSchema: {
       ...sourceSchema,
       minVersionReviews: z.number().int().min(1).max(2_000).default(10),
@@ -57,7 +57,7 @@ export function createMcpServer() {
 
   server.registerTool("analyze_app_reviews", {
     title: "Analyze app reviews",
-    description: "Turn public app reviews into evidence-backed themes, version signals, newly discovered issue fingerprints, and recommendations.",
+    description: "Turn public app reviews into evidence-backed themes, review-scope counts, actionable software issue clusters, version signals, and recommendations.",
     inputSchema: sourceSchema,
     annotations
   }, async (input) => toolResult(async () => {

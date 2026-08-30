@@ -116,6 +116,44 @@ export interface VersionReleaseLinkEvidence {
   evidence: ReleaseLinkEvidence[];
 }
 
+export type ReviewScopeCategory = "software" | "product-policy" | "community" | "support" | "unclear";
+
+export interface ReviewScopeMatch {
+  primary: ReviewScopeCategory;
+  actionable: boolean;
+  hits: Record<Exclude<ReviewScopeCategory, "unclear">, string[]>;
+  softwareThemes: string[];
+}
+
+export interface ReviewScopeEvidence extends Evidence {
+  reviewScope: Pick<ReviewScopeMatch, "primary" | "hits">;
+  releaseLink: ReleaseLinkMatch;
+}
+
+export interface ActionableSoftwareIssue {
+  id: string;
+  kind: "known-theme" | "discovered";
+  label: string;
+  count: number;
+  share: number;
+  releaseLinkedCount: number;
+  explicitReleaseCount: number;
+  supported: boolean;
+  evidence: ReviewScopeEvidence[];
+}
+
+export interface VersionActionabilityEvidence {
+  lowRatingReviewCount: number;
+  counts: Record<ReviewScopeCategory, number>;
+  shares: Record<ReviewScopeCategory, number>;
+  softwareCount: number;
+  softwareShare: number;
+  releaseLinkedSoftwareCount: number;
+  explicitReleaseSoftwareCount: number;
+  actionableIssues: ActionableSoftwareIssue[];
+  evidence: Record<ReviewScopeCategory, ReviewScopeEvidence[]>;
+}
+
 export interface ThemeSummary {
   id: string;
   label: string;
@@ -161,6 +199,7 @@ export interface VersionSummary {
   negativeShare: number;
   lastSeenAt: string;
   releaseLinkEvidence?: VersionReleaseLinkEvidence;
+  actionabilityEvidence?: VersionActionabilityEvidence;
   themeSignals: VersionThemeSignal[];
   evidence: Evidence[];
 }
@@ -230,6 +269,17 @@ export interface RegressionReleaseLinkEvidence extends Omit<VersionReleaseLinkEv
   level: VersionReleaseLinkEvidence["level"] | "unknown";
 }
 
+export interface RegressionActionabilityEvidence extends VersionActionabilityEvidence {
+  available: boolean;
+}
+
+export interface RegressionTriage {
+  decision: "software-regression" | "manual-review" | "observe";
+  blocking: boolean;
+  reason: string;
+  issues: ActionableSoftwareIssue[];
+}
+
 export interface RegressionResult {
   schemaVersion: number;
   status: "pass" | "fail" | "insufficient-data";
@@ -241,6 +291,8 @@ export interface RegressionResult {
   versionEvidence: VersionEvidenceStatus;
   sourceEvidence: SourceEvidenceStatus;
   releaseLinkEvidence?: RegressionReleaseLinkEvidence;
+  actionabilityEvidence?: RegressionActionabilityEvidence;
+  triage?: RegressionTriage;
   policy: Required<RegressionPolicy>;
   metrics: Record<string, any> | null;
   violations: RegressionViolation[];
@@ -259,6 +311,7 @@ export interface AnalysisResult {
 }
 
 export const VERSION: string;
+export const REVIEW_SCOPE_CATEGORIES: readonly ReviewScopeCategory[];
 export const THEME_RULES: ReadonlyArray<{
   id: string;
   label: string;
@@ -295,6 +348,7 @@ export function normalizeReview(review: Partial<Review> & Pick<Review, "source" 
 export function deduplicateReviews(reviews: Review[]): Review[];
 export function classifyReview(review: Pick<Review, "title" | "body">): ThemeMatch[];
 export function classifyReleaseLink(review: Partial<Pick<Review, "title" | "body">> & { text?: string }): ReleaseLinkMatch;
+export function classifyReviewScope(review: Partial<Pick<Review, "title" | "body">> & { text?: string }): ReviewScopeMatch;
 export function discoverIssues(reviews: Review[], options?: { totalReviews?: number; anchor?: number; limit?: number }): Array<Record<string, any>>;
 export function buildReport(input: { reviews: Review[]; app: AppMetadata; source: SourceRef; generatedAt?: string; aiSummary?: unknown }): Report;
 export function buildComparison(primary: Report, competitor: Report): Record<string, any>;

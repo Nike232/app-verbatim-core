@@ -40,13 +40,13 @@ Client configuration formats differ. Translate the same command and argument arr
 
 ### `check_release_regression`
 
-Evaluates the actual newest version against the newest earlier version that meets `minVersionReviews`. If the newest version is under-sampled or the connector reports a partial upstream page, the tool returns `insufficient-data` instead of silently comparing older releases or unstable samples. Known-theme violations are calculated only from one- to three-star problem evidence; positive theme mentions and feature-request themes remain visible but cannot fail the gate. The structured result also separates explicit update/version references from broader temporal-change language under `releaseLinkEvidence`; this diagnostic never filters rating evidence or changes the gate. The result contains `pass`, `fail`, or `insufficient-data`, selected versions, version and source readiness, policy, metric changes, violations, and source-review evidence.
+Evaluates the actual newest version against the newest earlier version that meets `minVersionReviews`. If the newest version is under-sampled or the connector reports a partial upstream page, the tool returns `insufficient-data` instead of silently comparing older releases or unstable samples. Known-theme violations are calculated only from one- to three-star problem evidence; positive theme mentions and feature-request themes remain visible but cannot fail the gate. The structured result separates explicit update/version references from broader temporal-change language, classifies low-rating reviews into five scopes, and returns `software-regression`, `manual-review`, or `observe` triage. Only repeated version-linked software symptoms receive the software-regression label; unexplained outcome failures remain blocking. The result contains selected versions, version and source readiness, policy, metric changes, violations, triage, and source-review evidence.
 
 Inputs include `appUrl`, `country`, `language`, `limit`, and all release-policy thresholds. Set `demo: true` to run the offline fixture without `appUrl`.
 
 ### `analyze_app_reviews`
 
-Returns evidence-backed themes, trends, version signals, repeated low-rating phrases outside the taxonomy, recommendations, and provenance for one public listing.
+Returns evidence-backed themes, trends, version signals, five-scope actionability evidence, repeated low-rating phrases outside the taxonomy, recommendations, and provenance for one public listing.
 
 ### `compare_app_reviews`
 
