@@ -58,7 +58,7 @@ inputs:
     required: false
     default: "true"
   fail-on-insufficient-data:
-    description: Fail when two versions do not have enough review evidence.
+    description: Fail when the newest version or its earlier baseline lacks enough review evidence.
     required: false
     default: "false"
   output:
@@ -78,7 +78,7 @@ outputs:
   status:
     description: pass, fail, or insufficient-data.
   current-version:
-    description: Newest version with enough review evidence.
+    description: Actual newest version, including when its evidence is insufficient.
   baseline-version:
     description: Previous version used as the baseline.
   violations:

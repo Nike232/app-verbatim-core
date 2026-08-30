@@ -43,7 +43,7 @@ npx --yes github:Nike232/app-verbatim-core init \
   --create-issue
 ```
 
-命令会验证并规范化商店 URL，然后生成 `.github/workflows/app-verbatim.yml`：每日定时检查、手动触发、最小权限和去重回归 Issue 都已配置。已有文件不会被静默覆盖；需要固定不可变版本时可加 `--action-ref v0.5.3`。
+命令会验证并规范化商店 URL，然后生成 `.github/workflows/app-verbatim.yml`：每日定时检查、手动触发、最小权限和去重回归 Issue 都已配置。已有文件不会被静默覆盖；需要固定不可变版本时可加 `--action-ref v0.5.4`。
 
 推荐命令默认采用观察模式：工作流仍会输出回归证据并维护 Issue，但在了解应用的正常评论量期间保持绿色。策略适配后，删掉生成的 `fail-on-regression: false` 即可转为质量门；只有明确想从首次运行就阻断时才省略 `--observe-only`。
 
@@ -94,7 +94,7 @@ Agent 可以调用三个只读工具：版本回归检查、单个应用评论�
 ## 核心能力
 
 - App Store 与 Google Play 公共评论连接器；
-- 最新版本与上一版本的评分、低分占比和投诉主题回归检测；
+- 真实最新版本与有足够样本的历史基线之间的评分、低分占比和投诉主题回归检测；最新版本样本不足时明确保持“证据不足”；
 - 预设分类之外的低分问题指纹发现；
 - 原始评论证据、数据去重和 SHA-256 来源哈希；
 - CLI、Node.js API、GitHub Action、本地 MCP Server 和自定义 Connector SDK；

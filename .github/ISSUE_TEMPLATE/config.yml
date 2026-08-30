@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Usage help and questions
+    url: https://github.com/Nike232/app-verbatim-core/discussions
+    about: Ask for help without turning the issue tracker into a support queue.
   - name: Security report
     url: https://github.com/Nike232/app-verbatim-core/security/advisories/new
     about: Report a vulnerability privately.

@@ -4,20 +4,33 @@ on:
   push:
     tags: ["v*.*.*"]
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run check
+      - name: Verify release identity
+        shell: bash
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          test "$GITHUB_REF_NAME" = "v$PACKAGE_VERSION"
+          grep -Fq "## [$PACKAGE_VERSION]" CHANGELOG.md
       - name: Build package artifact
         id: pack
         shell: bash
@@ -25,6 +38,10 @@ jobs:
           PACKAGE_FILE=$(npm pack --silent)
           echo "file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
           sha256sum "$PACKAGE_FILE" > "$PACKAGE_FILE.sha256"
+      - name: Attest package provenance
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: ${{ steps.pack.outputs.file }}
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
