@@ -79,7 +79,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "@mradex77/google-play-scraper": "^1.1.0",
+    "@mradex77/google-play-scraper": "^1.2.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
